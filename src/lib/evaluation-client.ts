@@ -277,14 +277,11 @@ export interface MfoProgressItem {
   percent: number;
 }
 
-const MFO_PROGRESS_LABELS: Record<string, string> = {
-  MFO1: "MFO 1",
-  MFO2: "MFO 2",
-  MFO3: "MFO 3",
-  MFO4: "MFO 4",
-};
-
-const MFO_PROGRESS_ORDER = ["MFO1", "MFO2", "MFO3", "MFO4"] as const;
+const MFO_PROGRESS_GROUPS: { code: string; label: string; mfoCodes: string[] }[] = [
+  { code: "MFO1_2", label: "MFO 1 & 2", mfoCodes: ["MFO1", "MFO2"] },
+  { code: "MFO3", label: "MFO 3", mfoCodes: ["MFO3"] },
+  { code: "MFO4", label: "MFO 4", mfoCodes: ["MFO4"] },
+];
 
 export function getRatingProgress(state: EvaluationState) {
   const applicable = state.indicators.filter(
@@ -306,18 +303,17 @@ export function getRatingProgress(state: EvaluationState) {
   }
 
   const total = applicable.length;
-  const mfoProgress: MfoProgressItem[] = MFO_PROGRESS_ORDER.filter(
-    (code) => (mfoStats[code]?.total ?? 0) > 0
-  ).map((code) => {
-    const stats = mfoStats[code];
+  const mfoProgress: MfoProgressItem[] = MFO_PROGRESS_GROUPS.map((group) => {
+    const completedInGroup = group.mfoCodes.reduce((sum, code) => sum + (mfoStats[code]?.completed ?? 0), 0);
+    const totalInGroup = group.mfoCodes.reduce((sum, code) => sum + (mfoStats[code]?.total ?? 0), 0);
     return {
-      code,
-      label: MFO_PROGRESS_LABELS[code] ?? code,
-      completed: stats.completed,
-      total: stats.total,
-      percent: Math.round((stats.completed / stats.total) * 100),
+      code: group.code,
+      label: group.label,
+      completed: completedInGroup,
+      total: totalInGroup,
+      percent: totalInGroup > 0 ? Math.round((completedInGroup / totalInGroup) * 100) : 0,
     };
-  });
+  }).filter((group) => group.total > 0);
 
   return {
     total,

@@ -16,7 +16,10 @@ export function SummaryPanel() {
     if (!progress || !computation) return [];
     return progress.mfoProgress.map((mfo) => ({
       ...mfo,
-      rating: computation.mfoRatings[mfo.code]?.rating ?? 0,
+      rating:
+        mfo.code === "MFO1_2"
+          ? computation.mfo1_2Rating
+          : (computation.mfoRatings[mfo.code]?.rating ?? 0),
     }));
   }, [progress, computation]);
 
