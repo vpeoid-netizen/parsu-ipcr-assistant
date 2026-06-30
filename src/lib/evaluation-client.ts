@@ -269,33 +269,61 @@ export function computeSingleIndicatorRating(
   );
 }
 
+export interface MfoProgressItem {
+  code: string;
+  label: string;
+  completed: number;
+  total: number;
+  percent: number;
+}
+
+const MFO_PROGRESS_LABELS: Record<string, string> = {
+  MFO1: "MFO 1",
+  MFO2: "MFO 2",
+  MFO3: "MFO 3",
+  MFO4: "MFO 4",
+};
+
+const MFO_PROGRESS_ORDER = ["MFO1", "MFO2", "MFO3", "MFO4"] as const;
+
 export function getRatingProgress(state: EvaluationState) {
   const applicable = state.indicators.filter(
     (i) => i.applicabilityStatus === "APPLICABLE" && isIncludedInRatingPeriod(i)
   );
   let completed = 0;
-  let mfo12Total = 0;
-  let mfo12Completed = 0;
+  const mfoStats: Record<string, { completed: number; total: number }> = {};
 
   for (const entry of applicable) {
     const rule = getIndicatorDef(entry.code);
     if (!rule) continue;
     const hasInput = hasIndicatorInput(entry, rule);
     if (hasInput) completed++;
-    if (isMfo12Indicator(rule.mfoCode)) {
-      mfo12Total++;
-      if (hasInput) mfo12Completed++;
-    }
+
+    const mfo = rule.mfoCode;
+    if (!mfoStats[mfo]) mfoStats[mfo] = { completed: 0, total: 0 };
+    mfoStats[mfo].total++;
+    if (hasInput) mfoStats[mfo].completed++;
   }
 
   const total = applicable.length;
+  const mfoProgress: MfoProgressItem[] = MFO_PROGRESS_ORDER.filter(
+    (code) => (mfoStats[code]?.total ?? 0) > 0
+  ).map((code) => {
+    const stats = mfoStats[code];
+    return {
+      code,
+      label: MFO_PROGRESS_LABELS[code] ?? code,
+      completed: stats.completed,
+      total: stats.total,
+      percent: Math.round((stats.completed / stats.total) * 100),
+    };
+  });
+
   return {
     total,
     completed,
     percent: total > 0 ? Math.round((completed / total) * 100) : 0,
-    mfo12Total,
-    mfo12Completed,
-    mfo12Percent: mfo12Total > 0 ? Math.round((mfo12Completed / mfo12Total) * 100) : 0,
+    mfoProgress,
   };
 }
 

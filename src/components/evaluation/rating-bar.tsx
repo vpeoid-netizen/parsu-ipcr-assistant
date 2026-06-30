@@ -50,14 +50,22 @@ export function IndicatorRatingBar({
   );
 }
 
+interface MfoProgressDisplay {
+  code: string;
+  label: string;
+  completed: number;
+  total: number;
+  percent: number;
+  rating: number;
+}
+
 interface RatingHealthTrackerProps {
   finalRating: number;
   adjectival?: string;
   completionPercent: number;
   completed: number;
   total: number;
-  mfo12Rating?: number;
-  mfo12Percent?: number;
+  mfoProgress?: MfoProgressDisplay[];
 }
 
 export function RatingHealthTracker({
@@ -66,8 +74,7 @@ export function RatingHealthTracker({
   completionPercent,
   completed,
   total,
-  mfo12Rating,
-  mfo12Percent,
+  mfoProgress = [],
 }: RatingHealthTrackerProps) {
   const healthPct = ratingHealthPercent(finalRating);
   const showRating = finalRating > 0;
@@ -110,20 +117,25 @@ export function RatingHealthTracker({
         </div>
       </div>
 
-      {mfo12Percent != null && mfo12Rating != null && (
-        <div>
-          <div className="flex justify-between text-xs mb-1">
-            <span className="text-muted-foreground">MFO 1 &amp; 2 progress</span>
-            <span className="font-mono">
-              {mfo12Rating > 0 ? formatRating(mfo12Rating) : "—"} · {mfo12Percent}%
-            </span>
-          </div>
-          <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-            <div
-              className="h-full rounded-full bg-primary/60 transition-all duration-300"
-              style={{ width: `${mfo12Percent}%` }}
-            />
-          </div>
+      {mfoProgress.length > 0 && (
+        <div className="space-y-3">
+          {mfoProgress.map((mfo) => (
+            <div key={mfo.code}>
+              <div className="flex justify-between text-xs mb-1">
+                <span className="text-muted-foreground">{mfo.label} progress</span>
+                <span className="font-mono">
+                  {mfo.rating > 0 ? formatRating(mfo.rating) : "—"} · {mfo.completed}/{mfo.total}{" "}
+                  ({mfo.percent}%)
+                </span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-primary/60 transition-all duration-300"
+                  style={{ width: `${mfo.percent}%` }}
+                />
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

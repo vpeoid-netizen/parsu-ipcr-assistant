@@ -12,6 +12,14 @@ export function SummaryPanel() {
 
   const progress = useMemo(() => (state ? getRatingProgress(state) : null), [state]);
 
+  const mfoProgress = useMemo(() => {
+    if (!progress || !computation) return [];
+    return progress.mfoProgress.map((mfo) => ({
+      ...mfo,
+      rating: computation.mfoRatings[mfo.code]?.rating ?? 0,
+    }));
+  }, [progress, computation]);
+
   if (!state || !computation) return null;
 
   const profileComplete = profileIsComplete(state.profile);
@@ -37,8 +45,7 @@ export function SummaryPanel() {
             completionPercent={progress.percent}
             completed={progress.completed}
             total={progress.total}
-            mfo12Rating={computation.mfo1_2Rating}
-            mfo12Percent={progress.mfo12Percent}
+            mfoProgress={mfoProgress}
           />
         )}
 
