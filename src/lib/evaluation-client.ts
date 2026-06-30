@@ -324,6 +324,41 @@ export function computePartialSummary(state: EvaluationState) {
   return { avgRating: avg, mfo12Avg, ratedCount: ratings.length };
 }
 
+export function isCosInstructor(profile: EvaluationProfile): boolean {
+  return profile.appointmentType === "COS" && profile.rankCategory === "INSTRUCTOR";
+}
+
+export function effectiveStrategicHasAssignedTarget(state: EvaluationState): boolean {
+  if (!isCosInstructor(state.profile)) return true;
+  if (state.strategicHasAssignedTarget != null) return state.strategicHasAssignedTarget;
+  return state.strategicTargets.some(hasTargetInput);
+}
+
+export function effectivePriorityHasAssignedTarget(state: EvaluationState): boolean {
+  if (!isCosInstructor(state.profile)) return true;
+  if (state.priorityHasAssignedTarget != null) return state.priorityHasAssignedTarget;
+  return state.priorityTargets.some(hasTargetInput);
+}
+
+export function hasStrategicOrPriorityForComputation(state: EvaluationState): boolean {
+  if (isCosInstructor(state.profile)) {
+    return (
+      effectiveStrategicHasAssignedTarget(state) || effectivePriorityHasAssignedTarget(state)
+    );
+  }
+  return (
+    state.strategicTargets.some(hasTargetInput) || state.priorityTargets.some(hasTargetInput)
+  );
+}
+
+export function cosUsesMfo12OnlyIpcr(state: EvaluationState): boolean {
+  return (
+    isCosInstructor(state.profile) &&
+    !effectiveStrategicHasAssignedTarget(state) &&
+    !effectivePriorityHasAssignedTarget(state)
+  );
+}
+
 export function hasTargetInput(target: TargetEntryState): boolean {
   return (
     target.periodTarget > 0 &&
@@ -331,6 +366,7 @@ export function hasTargetInput(target: TargetEntryState): boolean {
     !Number.isNaN(target.actualAccomplishment)
   );
 }
+
 
 export function hasDeliverableRatingInput(item: {
   qualityRating?: number;
@@ -384,20 +420,25 @@ export function buildComputeInput(state: EvaluationState) {
           },
         };
       }),
-    strategicTargets: state.strategicTargets
-      .filter(hasTargetInput)
-      .map((t) => ({
-      accomplishment: t.actualAccomplishment ?? 0,
-      target: t.periodTarget,
-      unit: t.unitOfMeasure,
-    })),
-    priorityTargets: state.priorityTargets
-      .filter(hasTargetInput)
-      .map((t) => ({
-      accomplishment: t.actualAccomplishment ?? 0,
-      target: t.periodTarget,
-      unit: t.unitOfMeasure,
-    })),
+    strategicTargets: effectiveStrategicHasAssignedTarget(state)
+      ? state.strategicTargets
+          .filter(hasTargetInput)
+          .map((t) => ({
+            accomplishment: t.actualAccomplishment ?? 0,
+            target: t.periodTarget,
+            unit: t.unitOfMeasure,
+          }))
+      : [],
+    priorityTargets: effectivePriorityHasAssignedTarget(state)
+      ? state.priorityTargets
+          .filter(hasTargetInput)
+          .map((t) => ({
+            accomplishment: t.actualAccomplishment ?? 0,
+            target: t.periodTarget,
+            unit: t.unitOfMeasure,
+          }))
+      : [],
+    hasStrategicOrPriority: hasStrategicOrPriorityForComputation(state),
     supportFunctions: state.supportFunctions
       .filter(hasDeliverableRatingInput)
       .map((sf) => ({

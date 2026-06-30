@@ -2,6 +2,7 @@
 
 import { Plus, Trash2 } from "lucide-react";
 import { useMemo } from "react";
+import { AssignedTargetToggle } from "@/components/evaluation/assigned-target-toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +12,9 @@ import { useEvaluation } from "@/components/evaluation/evaluation-context";
 import {
   computeTargetEntryRating,
   computeTargetsSectionRating,
+  cosUsesMfo12OnlyIpcr,
   hasTargetInput,
+  isCosInstructor,
   uid,
 } from "@/lib/evaluation-client";
 import { formatRating } from "@/lib/utils";
@@ -34,6 +37,8 @@ export function TargetsStep({ type }: { type: "strategic" | "priority" }) {
   if (!state) return null;
 
   const key = type === "strategic" ? "strategicTargets" : "priorityTargets";
+  const assignedKey =
+    type === "strategic" ? "strategicHasAssignedTarget" : "priorityHasAssignedTarget";
   const targets = state[key];
   const title = type === "strategic" ? "Strategic Results" : "Priority Results";
   const movNote =
@@ -41,9 +46,19 @@ export function TargetsStep({ type }: { type: "strategic" | "priority" }) {
       ? "Certification by College Planning and Development Coordinator"
       : "Proof certified by the College Dean";
 
-  const sectionRating = useMemo(() => computeTargetsSectionRating(targets), [targets]);
+  const showCosToggle = isCosInstructor(state.profile);
+  const hasAssignedTarget = showCosToggle ? (state[assignedKey] ?? false) : true;
+  const mfo12OnlyIpcr = cosUsesMfo12OnlyIpcr(state);
+
+  const sectionRating = useMemo(
+    () => (hasAssignedTarget ? computeTargetsSectionRating(targets) : null),
+    [targets, hasAssignedTarget]
+  );
 
   const update = (list: TargetEntryState[]) => setState({ ...state, [key]: list });
+
+  const setHasAssignedTarget = (on: boolean) =>
+    setState({ ...state, [assignedKey]: on });
 
   const add = () =>
     update([
@@ -65,7 +80,29 @@ export function TargetsStep({ type }: { type: "strategic" | "priority" }) {
         {title} — enter assigned targets and accomplishments. Required MOV (reference): {movNote}.
       </p>
 
-      {sectionRating != null && (
+      {showCosToggle && (
+        <>
+          <AssignedTargetToggle
+            checked={hasAssignedTarget}
+            onChange={setHasAssignedTarget}
+            sectionLabel={title.toLowerCase()}
+          />
+          {mfo12OnlyIpcr && (
+            <p className="text-sm text-primary bg-primary/5 border border-primary/20 rounded-lg p-3">
+              No assigned targets for Strategic or Priority Results. IPCR rating is computed from
+              MFO 1 &amp; 2 only.
+            </p>
+          )}
+        </>
+      )}
+
+      {!hasAssignedTarget && showCosToggle && (
+        <p className="text-sm text-muted-foreground italic">
+          This section is not included in the IPCR computation.
+        </p>
+      )}
+
+      {hasAssignedTarget && sectionRating != null && (
         <div className="rounded-lg border bg-card p-4 space-y-2">
           <div className="flex justify-between items-center text-sm">
             <span className="font-medium">{title} rating</span>
@@ -80,7 +117,8 @@ export function TargetsStep({ type }: { type: "strategic" | "priority" }) {
         </div>
       )}
 
-      {targets.map((t) => {
+      {hasAssignedTarget &&
+        targets.map((t) => {
         const entryRating = computeTargetEntryRating(t);
         const hasInput = hasTargetInput(t);
 
@@ -151,10 +189,12 @@ export function TargetsStep({ type }: { type: "strategic" | "priority" }) {
           </div>
         );
       })}
+      {hasAssignedTarget && (
       <Button variant="outline" onClick={add}>
         <Plus className="h-4 w-4" />
         Add {type === "strategic" ? "strategic" : "priority"} target
       </Button>
+      )}
     </div>
   );
 }

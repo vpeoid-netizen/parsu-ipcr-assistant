@@ -68,6 +68,7 @@ export interface FullEvaluationInput {
   priorityTargets: StrategicTargetInput[];
   supportFunctions: SupportFunctionInput[];
   designationDeliverables: DesignationDeliverableInput[];
+  hasStrategicOrPriority?: boolean;
   holidays?: { date: string; name: string }[];
 }
 
@@ -178,7 +179,8 @@ export function computeFullEvaluation(input: FullEvaluationInput): FullEvaluatio
 
   // 4. Strategic/Priority consolidation
   const hasStrategicOrPriority =
-    input.strategicTargets.length > 0 || input.priorityTargets.length > 0;
+    input.hasStrategicOrPriority ??
+    (input.strategicTargets.length > 0 || input.priorityTargets.length > 0);
   const stratPriResult = consolidateStrategicPriority(
     input.strategicTargets.map((t) => ({
       accomplishment: d(t.validatedAccomplishment ?? t.accomplishment),

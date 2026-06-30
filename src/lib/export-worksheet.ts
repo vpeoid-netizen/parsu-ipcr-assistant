@@ -1,4 +1,5 @@
-import { getIndicatorDef, hasTargetInput } from "@/lib/evaluation-client";
+import { cosUsesMfo12OnlyIpcr, getIndicatorDef, hasTargetInput } from "@/lib/evaluation-client";
+import { isIncludedInRatingPeriod } from "@/lib/indicator-period";
 import type { FullEvaluationResult } from "@/lib/calculation-engine/evaluation";
 import type { EvaluationState } from "@/lib/types";
 import { RULESET_VERSION } from "@/data/reference";
@@ -57,10 +58,11 @@ export function buildWorksheetData(
     .map((entry) => {
       const def = getIndicatorDef(entry.code);
       const result = computation.indicatorRatings[entry.code];
+      const included = isIncludedInRatingPeriod(entry);
       return {
         name: def?.name ?? entry.code,
         mfo: def?.mfoCode ?? "—",
-        rating: formatRating(result?.rating),
+        rating: included ? formatRating(result?.rating) : "N/A",
       };
     });
 
@@ -79,9 +81,14 @@ export function buildWorksheetData(
     })),
   ];
 
+  const mfo12Only = cosUsesMfo12OnlyIpcr(state);
+
   const summaryRows: [string, string][] = [
     ["Performance Results", formatRating(computation.performanceResults.rating)],
-    ["Strategic/Priority (combined)", formatRating(computation.consolidatedStratPri.rating)],
+    [
+      "Strategic/Priority (combined)",
+      mfo12Only ? "N/A" : formatRating(computation.consolidatedStratPri.rating),
+    ],
     ["Base IPCR", formatRating(computation.baseIpcr.rating)],
     ["Final IPCR", formatRating(computation.finalIpcr.rating)],
     ["Adjectival Rating", computation.adjectivalRating],
