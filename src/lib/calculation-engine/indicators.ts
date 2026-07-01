@@ -1,7 +1,6 @@
 import {
   allocateAuthorship,
   allocateFundGeneration,
-  allocateProjectRole,
   averageByRequiredCount,
   cap,
   computeTimelinessRating,
@@ -13,6 +12,7 @@ import {
   percentageToRating,
   targetComparisonRating,
   type ComputationTrace,
+  type ComputationStep,
   type D,
   createTrace,
   getRequiredOutputCount,
@@ -212,6 +212,22 @@ function getStageRating(stageKey: string): D {
   return d(STAGE_RATINGS[stageKey] ?? 0);
 }
 
+function allocateGroupCredit(
+  rule: IndicatorRuleInput,
+  output: IndicatorOutputInput,
+  rawRating: D
+): { allocated: D; trace: ComputationStep[] } {
+  if (!rule.authorshipAllocation) {
+    return { allocated: rawRating, trace: [] };
+  }
+
+  const numberInGroup = Math.max(output.numberOfAuthors ?? output.numberOfMembers ?? 1, 1);
+  const isMain = Boolean(output.isMainAuthor ?? output.isProjectLeader);
+  const { mainAuthorPct, coAuthorPct } = rule.authorshipAllocation;
+
+  return allocateAuthorship(rawRating, isMain, numberInGroup, mainAuthorPct, coAuthorPct);
+}
+
 function computeStageCumulative(
   rule: IndicatorRuleInput,
   outputs: IndicatorOutputInput[],
@@ -227,18 +243,8 @@ function computeStageCumulative(
       value: `${output.stageLabel} → ${rawRating.toFixed(1)}`,
     });
 
-    let allocated: D;
-    if (output.isMainAuthor !== undefined && output.numberOfAuthors) {
-      const result = allocateAuthorship(rawRating, output.isMainAuthor, output.numberOfAuthors);
-      allocated = result.allocated;
-      allSteps.push(...result.trace);
-    } else if (output.isProjectLeader !== undefined && output.numberOfMembers) {
-      const result = allocateProjectRole(rawRating, output.isProjectLeader, output.numberOfMembers);
-      allocated = result.allocated;
-      allSteps.push(...result.trace);
-    } else {
-      allocated = rawRating;
-    }
+    const { allocated, trace } = allocateGroupCredit(rule, output, rawRating);
+    allSteps.push(...trace);
     allocatedScores.push(allocated);
   }
 

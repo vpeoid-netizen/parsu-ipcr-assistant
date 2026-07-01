@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MovGuidance } from "@/components/evaluation/mov-guidance";
 import { IndicatorPeriodControls } from "@/components/evaluation/indicator-period-controls";
+import { AuthorshipFields } from "@/components/evaluation/authorship-fields";
 import { IndicatorRatingBar } from "@/components/evaluation/rating-bar";
 import { useEvaluation } from "@/components/evaluation/evaluation-context";
 import {
@@ -118,7 +119,16 @@ export function IndicatorCard({ entry }: { entry: IndicatorEntryState }) {
 
   const addEntry = () => {
     updateEntry({
-      outputs: [...entry.outputs, { id: uid(), title: `Entry ${entry.outputs.length + 1}` }],
+      outputs: [
+        ...entry.outputs,
+        {
+          id: uid(),
+          title: `Entry ${entry.outputs.length + 1}`,
+          ...(def.authorshipAllocation
+            ? { numberOfAuthors: 1, numberOfMembers: 1, isMainAuthor: true, isProjectLeader: true }
+            : {}),
+        },
+      ],
     });
   };
 
@@ -301,34 +311,10 @@ export function IndicatorCard({ entry }: { entry: IndicatorEntryState }) {
                   )}
 
                   {def.authorshipAllocation && (
-                    <div className="grid grid-cols-3 gap-2">
-                      <Input
-                        type="number"
-                        min={1}
-                        placeholder="# authors/members"
-                        value={output.numberOfAuthors ?? output.numberOfMembers ?? ""}
-                        onChange={(e) => {
-                          const n = parseInt(e.target.value, 10) || 1;
-                          updateOutput(output.id, {
-                            numberOfAuthors: n,
-                            numberOfMembers: n,
-                          });
-                        }}
-                      />
-                      <label className="flex items-center gap-1 text-xs col-span-2">
-                        <input
-                          type="checkbox"
-                          checked={output.isMainAuthor || output.isProjectLeader || false}
-                          onChange={(e) =>
-                            updateOutput(output.id, {
-                              isMainAuthor: e.target.checked,
-                              isProjectLeader: e.target.checked,
-                            })
-                          }
-                        />
-                        Main author / project leader
-                      </label>
-                    </div>
+                    <AuthorshipFields
+                      output={output}
+                      onChange={(patch) => updateOutput(output.id, patch)}
+                    />
                   )}
                 </div>
               ))}
@@ -434,34 +420,10 @@ export function IndicatorCard({ entry }: { entry: IndicatorEntryState }) {
                   )}
 
                   {def.authorshipAllocation && (
-                    <div className="grid grid-cols-3 gap-2">
-                      <Input
-                        type="number"
-                        min={1}
-                        placeholder="# authors/members"
-                        value={output.numberOfAuthors ?? output.numberOfMembers ?? ""}
-                        onChange={(e) => {
-                          const n = parseInt(e.target.value, 10) || 1;
-                          updateOutput(output.id, {
-                            numberOfAuthors: n,
-                            numberOfMembers: n,
-                          });
-                        }}
-                      />
-                      <label className="flex items-center gap-1 text-xs col-span-2">
-                        <input
-                          type="checkbox"
-                          checked={output.isMainAuthor || output.isProjectLeader || false}
-                          onChange={(e) =>
-                            updateOutput(output.id, {
-                              isMainAuthor: e.target.checked,
-                              isProjectLeader: e.target.checked,
-                            })
-                          }
-                        />
-                        Main author / project leader
-                      </label>
-                    </div>
+                    <AuthorshipFields
+                      output={output}
+                      onChange={(patch) => updateOutput(output.id, patch)}
+                    />
                   )}
                 </div>
               ))}

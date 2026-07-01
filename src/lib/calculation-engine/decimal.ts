@@ -79,25 +79,38 @@ export function getAdjectivalRating(rating: D | null): string {
 export function allocateAuthorship(
   rawRating: D,
   isMainAuthor: boolean,
-  numberOfAuthors: number
+  numberOfAuthors: number,
+  mainAuthorPct = 60,
+  coAuthorPct = 40
 ): { allocated: D; trace: ComputationStep[] } {
   const steps: ComputationStep[] = [];
-  if (numberOfAuthors <= 0) numberOfAuthors = 1;
+  const n = Math.max(numberOfAuthors, 1);
+
+  if (n <= 1) {
+    steps.push({
+      label: "Sole author/producer",
+      value: round(rawRating).toFixed(3),
+    });
+    return { allocated: rawRating, trace: steps };
+  }
+
+  const mainFrac = d(mainAuthorPct).div(100);
+  const coFrac = d(coAuthorPct).div(100);
 
   if (isMainAuthor) {
-    const allocated = rawRating.times(0.6);
+    const allocated = rawRating.times(mainFrac);
     steps.push({
       label: "Main author allocation",
-      formula: `${rawRating.toFixed(1)} × 60%`,
+      formula: `${rawRating.toFixed(1)} × ${mainAuthorPct}%`,
       value: round(allocated).toFixed(3),
     });
     return { allocated, trace: steps };
   }
 
-  const coAuthorShare = rawRating.times(0.4).div(Math.max(numberOfAuthors - 1, 1));
+  const coAuthorShare = rawRating.times(coFrac).div(n - 1);
   steps.push({
     label: "Co-author allocation",
-    formula: `${rawRating.toFixed(1)} × 40% ÷ ${numberOfAuthors - 1} co-authors`,
+    formula: `${rawRating.toFixed(1)} × ${coAuthorPct}% ÷ ${n - 1} co-authors`,
     value: round(coAuthorShare).toFixed(3),
   });
   return { allocated: coAuthorShare, trace: steps };
@@ -107,28 +120,11 @@ export function allocateAuthorship(
 export function allocateProjectRole(
   rawRating: D,
   isLeader: boolean,
-  numberOfMembers: number
+  numberOfMembers: number,
+  leaderPct = 60,
+  memberPct = 40
 ): { allocated: D; trace: ComputationStep[] } {
-  const steps: ComputationStep[] = [];
-  if (numberOfMembers <= 0) numberOfMembers = 1;
-
-  if (isLeader) {
-    const allocated = rawRating.times(0.6);
-    steps.push({
-      label: "Project leader allocation",
-      formula: `${rawRating.toFixed(1)} × 60%`,
-      value: round(allocated).toFixed(3),
-    });
-    return { allocated, trace: steps };
-  }
-
-  const memberShare = rawRating.times(0.4).div(Math.max(numberOfMembers - 1, 1));
-  steps.push({
-    label: "Project member allocation",
-    formula: `${rawRating.toFixed(1)} × 40% ÷ ${numberOfMembers - 1} members`,
-    value: round(memberShare).toFixed(3),
-  });
-  return { allocated: memberShare, trace: steps };
+  return allocateAuthorship(rawRating, isLeader, numberOfMembers, leaderPct, memberPct);
 }
 
 // Research fund co-contributor: main gets full, co-contributors get half
