@@ -482,12 +482,15 @@ export function computeBaseIpcr(
   const steps: ComputationStep[] = [];
 
   if (hasSupportFunctions) {
-    const prContrib = performanceResults.times(0.8);
-    const spContrib = consolidatedStratPri.times(0.1);
-    const sfContrib = supportFunctionsRating.times(0.1);
+    const prWeight = hasStrategicOrPriority ? 0.8 : 0.9;
+    const spWeight = 0.1;
+    const sfWeight = 0.1;
+    const prContrib = performanceResults.times(prWeight);
+    const spContrib = consolidatedStratPri.times(spWeight);
+    const sfContrib = supportFunctionsRating.times(sfWeight);
     steps.push({
-      label: "Performance Results (80%)",
-      formula: `${round(performanceResults).toFixed(3)} × 80%`,
+      label: `Performance Results (${prWeight * 100}%)`,
+      formula: `${round(performanceResults).toFixed(3)} × ${prWeight * 100}%`,
       value: round(prContrib).toFixed(3),
     });
     if (hasStrategicOrPriority) {
@@ -507,11 +510,13 @@ export function computeBaseIpcr(
     return { rating: cap(total), trace: steps };
   }
 
-  const prContrib = performanceResults.times(0.85);
-  const spContrib = consolidatedStratPri.times(0.15);
+  const prWeight = hasStrategicOrPriority ? 0.85 : 1;
+  const spWeight = 0.15;
+  const prContrib = performanceResults.times(prWeight);
+  const spContrib = consolidatedStratPri.times(spWeight);
   steps.push({
-    label: "Performance Results (85%)",
-    formula: `${round(performanceResults).toFixed(3)} × 85%`,
+    label: `Performance Results (${prWeight * 100}%)`,
+    formula: `${round(performanceResults).toFixed(3)} × ${prWeight * 100}%`,
     value: round(prContrib).toFixed(3),
   });
   if (hasStrategicOrPriority) {

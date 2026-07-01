@@ -348,24 +348,33 @@ export function computePartialSummary(state: EvaluationState) {
   return { avgRating: avg, mfo12Avg, ratedCount: ratings.length };
 }
 
+export function isCosFaculty(profile: EvaluationProfile): boolean {
+  return profile.appointmentType === "COS";
+}
+
+/** @deprecated Use isCosFaculty */
 export function isCosInstructor(profile: EvaluationProfile): boolean {
-  return profile.appointmentType === "COS" && profile.rankCategory === "INSTRUCTOR";
+  return isCosFaculty(profile);
 }
 
 export function effectiveStrategicHasAssignedTarget(state: EvaluationState): boolean {
-  if (!isCosInstructor(state.profile)) return true;
+  if (!isCosFaculty(state.profile)) {
+    return state.strategicTargets.some(hasTargetInput);
+  }
   if (state.strategicHasAssignedTarget != null) return state.strategicHasAssignedTarget;
   return state.strategicTargets.some(hasTargetInput);
 }
 
 export function effectivePriorityHasAssignedTarget(state: EvaluationState): boolean {
-  if (!isCosInstructor(state.profile)) return true;
+  if (!isCosFaculty(state.profile)) {
+    return state.priorityTargets.some(hasTargetInput);
+  }
   if (state.priorityHasAssignedTarget != null) return state.priorityHasAssignedTarget;
   return state.priorityTargets.some(hasTargetInput);
 }
 
 export function hasStrategicOrPriorityForComputation(state: EvaluationState): boolean {
-  if (isCosInstructor(state.profile)) {
+  if (isCosFaculty(state.profile)) {
     return (
       effectiveStrategicHasAssignedTarget(state) || effectivePriorityHasAssignedTarget(state)
     );
@@ -377,7 +386,7 @@ export function hasStrategicOrPriorityForComputation(state: EvaluationState): bo
 
 export function cosUsesMfo12OnlyIpcr(state: EvaluationState): boolean {
   return (
-    isCosInstructor(state.profile) &&
+    isCosFaculty(state.profile) &&
     !effectiveStrategicHasAssignedTarget(state) &&
     !effectivePriorityHasAssignedTarget(state)
   );

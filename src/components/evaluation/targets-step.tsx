@@ -14,7 +14,7 @@ import {
   computeTargetsSectionRating,
   cosUsesMfo12OnlyIpcr,
   hasTargetInput,
-  isCosInstructor,
+  isCosFaculty,
   uid,
 } from "@/lib/evaluation-client";
 import { formatRating } from "@/lib/utils";
@@ -46,7 +46,7 @@ export function TargetsStep({ type }: { type: "strategic" | "priority" }) {
       ? "Certification by College Planning and Development Coordinator"
       : "Proof certified by the College Dean";
 
-  const showCosToggle = isCosInstructor(state.profile);
+  const showCosToggle = isCosFaculty(state.profile);
   const hasAssignedTarget = showCosToggle ? (state[assignedKey] ?? false) : true;
   const mfo12OnlyIpcr = cosUsesMfo12OnlyIpcr(state);
 
@@ -89,8 +89,8 @@ export function TargetsStep({ type }: { type: "strategic" | "priority" }) {
           />
           {mfo12OnlyIpcr && (
             <p className="text-sm text-primary bg-primary/5 border border-primary/20 rounded-lg p-3">
-              No assigned targets for Strategic or Priority Results. IPCR rating is computed from
-              MFO 1 &amp; 2 only.
+              No assigned targets for Strategic or Priority Results. Final IPCR rating is computed
+              from MFO 1 &amp; 2 only.
             </p>
           )}
         </>

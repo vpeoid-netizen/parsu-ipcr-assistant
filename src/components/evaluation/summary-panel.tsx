@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RatingHealthTracker } from "@/components/evaluation/rating-bar";
 import { useEvaluation } from "@/components/evaluation/evaluation-context";
-import { getRatingProgress, profileIsComplete } from "@/lib/evaluation-client";
+import { cosUsesMfo12OnlyIpcr, getRatingProgress, profileIsComplete } from "@/lib/evaluation-client";
 import { formatRating } from "@/lib/utils";
 
 export function SummaryPanel() {
@@ -27,6 +27,7 @@ export function SummaryPanel() {
 
   const profileComplete = profileIsComplete(state.profile);
   const ipcrRating = computation.finalIpcr.rating;
+  const mfo12OnlyIpcr = cosUsesMfo12OnlyIpcr(state);
 
   return (
     <Card className="sticky top-20 h-fit">
@@ -34,6 +35,11 @@ export function SummaryPanel() {
         <CardTitle className="text-sm">Live Rating Summary</CardTitle>
       </CardHeader>
       <CardContent className="text-xs space-y-4">
+        {mfo12OnlyIpcr && (
+          <p className="text-primary bg-primary/5 border border-primary/20 rounded-lg p-2 text-xs">
+            COS faculty: no Strategic/Priority targets — Final IPCR is from MFO 1 &amp; 2 only.
+          </p>
+        )}
         <div className="flex justify-between">
           <span>Profile</span>
           <span className={profileComplete ? "text-blue-700" : "text-amber-600"}>
@@ -59,7 +65,9 @@ export function SummaryPanel() {
           </div>
           <div className="flex justify-between">
             <span>Strategic/Priority</span>
-            <span className="font-mono">{formatRating(computation.consolidatedStratPri.rating)}</span>
+            <span className="font-mono">
+              {mfo12OnlyIpcr ? "N/A" : formatRating(computation.consolidatedStratPri.rating)}
+            </span>
           </div>
           {state.profile.hasSupportFunctions && (
             <div className="flex justify-between">

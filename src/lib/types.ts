@@ -117,9 +117,9 @@ export interface EvaluationState {
   indicators: IndicatorEntryState[];
   strategicTargets: TargetEntryState[];
   priorityTargets: TargetEntryState[];
-  /** COS Instructor: strategic results have an assigned target for the rating period. */
+  /** COS faculty: strategic results have an assigned target for the rating period. */
   strategicHasAssignedTarget?: boolean;
-  /** COS Instructor: priority results have an assigned target for the rating period. */
+  /** COS faculty: priority results have an assigned target for the rating period. */
   priorityHasAssignedTarget?: boolean;
   supportFunctions: SupportFunctionState[];
   designationDeliverables: DesignationDeliverableState[];
