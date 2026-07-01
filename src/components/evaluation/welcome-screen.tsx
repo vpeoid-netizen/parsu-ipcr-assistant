@@ -4,6 +4,7 @@ import { Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ParsuLogo } from "@/components/parsu-logo";
 import { useEvaluation } from "@/components/evaluation/evaluation-context";
+import { APP_DISPLAY_NAME } from "@/lib/utils";
 
 export function WelcomeScreen() {
   const { startEvaluation } = useEvaluation();
@@ -12,7 +13,7 @@ export function WelcomeScreen() {
     <div className="mx-auto max-w-2xl px-4 py-12">
       <div className="text-center mb-10">
         <ParsuLogo size={80} className="h-20 w-20 object-contain mx-auto mb-4" />
-        <h1 className="text-3xl font-bold text-parsu-dark">ParSU IPCR Evaluation Assistant</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-parsu-dark">{APP_DISPLAY_NAME}</h1>
         <p className="mt-2 text-muted-foreground max-w-xl mx-auto">
           FY 2026 rating computation tool for teaching personnel. Enter indicator ratings and
           faculty information to compute your IPCR — no account required. Data is kept only for

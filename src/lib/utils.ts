@@ -4,6 +4,8 @@ import type { EvaluationMode } from "@/lib/types";
 
 export type { EvaluationMode };
 
+export const APP_DISPLAY_NAME = "ParSU Teaching Personnel IPCR Evaluation Assistant";
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

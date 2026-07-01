@@ -12,6 +12,7 @@ const ROOT = join(__dirname, "..");
 const OUT_DIR = join(ROOT, "public", "guides");
 const OUT_FILE = join(OUT_DIR, "ParSU-IPCR-Assistant-User-Guide.pdf");
 
+const APP_NAME = "ParSU Teaching Personnel IPCR Evaluation Assistant";
 const PT = 72;
 const PAGE_W = 8.5 * PT;
 const PAGE_H = 13 * PT;
@@ -73,7 +74,7 @@ class Writer {
     this.y = PAGE_H - MARGIN_TOP;
     if (this.pageNum > 1) {
       this.drawMuted(
-        `ParSU IPCR Evaluation Assistant — User Guide · Page ${this.pageNum}`,
+        `${APP_NAME} — User Guide · Page ${this.pageNum}`,
         MARGIN_SIDE,
         MARGIN_BOTTOM - 4,
         BODY_SM
@@ -193,9 +194,9 @@ function buildGuide(w) {
   w.y = PAGE_H - 2 * PT;
   w.drawText("Partido State University", MARGIN_SIDE, w.y, COVER_SUB, w.font, C.muted);
   w.y -= 36;
-  w.drawText("ParSU IPCR Evaluation", MARGIN_SIDE, w.y, COVER_TITLE, w.bold, C.primary);
+  w.drawText("ParSU Teaching Personnel", MARGIN_SIDE, w.y, COVER_TITLE, w.bold, C.primary);
   w.y -= 28;
-  w.drawText("Assistant", MARGIN_SIDE, w.y, COVER_TITLE, w.bold, C.primary);
+  w.drawText("IPCR Evaluation Assistant", MARGIN_SIDE, w.y, COVER_TITLE, w.bold, C.primary);
   w.y -= 32;
   w.drawText("Beginner-Friendly User Guide", MARGIN_SIDE, w.y, COVER_SUB, w.bold);
   w.y -= 20;
@@ -235,7 +236,7 @@ function buildGuide(w) {
   w.newPage();
   w.drawH1("1. Introduction");
   w.drawParagraph(
-    "The ParSU IPCR Evaluation Assistant is a web-based tool that helps teaching personnel compute their Individual Performance Commitment and Review (IPCR) rating under the FY 2026 rules. It guides you through each performance indicator, applies the official rating formulas automatically, and shows your live IPCR score as you enter data."
+    `The ${APP_NAME} is a web-based tool that helps teaching personnel compute their Individual Performance Commitment and Review (IPCR) rating under the FY 2026 rules. It guides you through each performance indicator, applies the official rating formulas automatically, and shows your live IPCR score as you enter data.`
   );
   w.drawParagraph(
     "The tool is designed for self-evaluation: you enter ratings and accomplishments, and the application calculates Performance Results, Strategic/Priority contributions, Support Functions, Designation weighting (if applicable), and your final IPCR rating."
@@ -286,7 +287,7 @@ function buildGuide(w) {
   w.drawNumbered(
     2,
     "Welcome screen",
-    "You will see the ParSU logo, the title ParSU IPCR Evaluation Assistant, and a short description. Read the note that data is kept only for this browser session."
+    `You will see the ParSU logo, the title ${APP_NAME}, and a short description. Read the note that data is kept only for this browser session.`
   );
   w.drawNumbered(
     3,
