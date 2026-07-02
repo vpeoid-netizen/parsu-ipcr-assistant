@@ -1,6 +1,7 @@
 "use client";
 
 import { useEvaluation } from "@/components/evaluation/evaluation-context";
+import { FinalIpcrComputationDetails } from "@/components/evaluation/final-ipcr-computation-details";
 import { IndicatorRatingBar } from "@/components/evaluation/rating-bar";
 import { cosUsesMfo12OnlyIpcr, profileIsComplete } from "@/lib/evaluation-client";
 import { formatRating } from "@/lib/utils";
@@ -40,6 +41,8 @@ export function SummaryStep() {
         <IndicatorRatingBar rating={ipcrRating} label="IPCR Rating" showValue={false} variant="ipcr" />
         <p className="text-xs text-muted-foreground">{RULESET_VERSION}</p>
       </div>
+
+      <FinalIpcrComputationDetails />
 
       <div className="grid gap-3 sm:grid-cols-2 text-sm">
         {[

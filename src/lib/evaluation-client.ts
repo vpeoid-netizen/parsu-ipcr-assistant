@@ -7,6 +7,8 @@ import {
   round,
 } from "@/lib/calculation-engine/decimal";
 import { computeFullEvaluation } from "@/lib/calculation-engine/evaluation";
+import type { FullEvaluationResult } from "@/lib/calculation-engine/evaluation";
+import type { ComputationStep } from "@/lib/calculation-engine/decimal";
 import { computeIndicatorRating } from "@/lib/calculation-engine/indicators";
 import { isMfo12Indicator, usesRatingScaleDropdown } from "@/lib/rating-scales";
 import {
@@ -14,6 +16,7 @@ import {
   getEffectivePeriodTarget,
   isIncludedInRatingPeriod,
 } from "@/lib/indicator-period";
+import { formatRating } from "@/lib/utils";
 import type {
   AppointmentType,
   EvaluationProfile,
@@ -552,6 +555,65 @@ export function computeSupportFunctionsLive(state: EvaluationState): number | nu
 
 export function computeDesignationLive(state: EvaluationState): number | null {
   return computeDeliverablesSectionRating(state.designationDeliverables);
+}
+
+export interface IpcrComputationSection {
+  title: string;
+  steps: ComputationStep[];
+  ratingLabel?: string;
+}
+
+export function buildFinalIpcrComputationBreakdown(
+  state: EvaluationState,
+  computation: FullEvaluationResult
+): IpcrComputationSection[] {
+  const sections: IpcrComputationSection[] = [];
+  const mfo12Only = cosUsesMfo12OnlyIpcr(state);
+  const hasStrategicPriority = hasStrategicOrPriorityForComputation(state);
+
+  sections.push({
+    title: "Performance Results",
+    steps: computation.performanceResults.trace.steps,
+    ratingLabel: formatRating(computation.performanceResults.rating),
+  });
+
+  if (hasStrategicPriority && !mfo12Only) {
+    sections.push({
+      title: "Strategic/Priority (combined)",
+      steps: computation.consolidatedStratPri.trace.steps,
+      ratingLabel: formatRating(computation.consolidatedStratPri.rating),
+    });
+  }
+
+  if (state.profile.hasSupportFunctions) {
+    sections.push({
+      title: "Support Functions",
+      steps: computation.supportFunctionsRating.trace.steps,
+      ratingLabel: formatRating(computation.supportFunctionsRating.rating),
+    });
+  }
+
+  sections.push({
+    title: "Base IPCR",
+    steps: computation.baseIpcr.trace.steps,
+    ratingLabel: formatRating(computation.baseIpcr.rating),
+  });
+
+  if (state.profile.hasDesignation) {
+    sections.push({
+      title: "Designation Rating",
+      steps: computation.designationRating.trace.steps,
+      ratingLabel: formatRating(computation.designationRating.rating),
+    });
+  }
+
+  sections.push({
+    title: "Final IPCR",
+    steps: computation.finalIpcr.trace.steps,
+    ratingLabel: formatRating(computation.finalIpcr.rating),
+  });
+
+  return sections;
 }
 
 export function saveSession(state: EvaluationState) {
