@@ -326,10 +326,18 @@ export function IndicatorCard({ entry }: { entry: IndicatorEntryState }) {
 
                   {stages.length > 0 && (
                     <Select
-                      value={output.stageKey ?? ""}
+                      value={output.stageKey ?? (output.rawScore === 0 ? "NO_ACCOMPLISHMENT" : "")}
                       onValueChange={(v) => {
+                        if (v === "NO_ACCOMPLISHMENT") {
+                          updateOutput(output.id, { stageKey: undefined, stageLabel: "No accomplishment", rawScore: 0 });
+                          return;
+                        }
                         const stage = stages.find((s) => s.stageKey === v);
-                        updateOutput(output.id, { stageKey: v, stageLabel: stage?.stageLabel });
+                        updateOutput(output.id, {
+                          stageKey: v,
+                          stageLabel: stage?.stageLabel,
+                          rawScore: stage ? STAGE_RATINGS[stage.stageKey] ?? undefined : undefined,
+                        });
                       }}
                     >
                       <SelectTrigger>
@@ -341,14 +349,21 @@ export function IndicatorCard({ entry }: { entry: IndicatorEntryState }) {
                             {s.stageLabel}
                           </SelectItem>
                         ))}
+                        <SelectItem value="NO_ACCOMPLISHMENT">0 — No Accomplishment</SelectItem>
                       </SelectContent>
                     </Select>
                   )}
 
                   {def.measurementType === "GEOGRAPHIC_LEVEL" && (
                     <Select
-                      value={output.geographicLevel ?? ""}
-                      onValueChange={(v) => updateOutput(output.id, { geographicLevel: v })}
+                      value={output.geographicLevel ?? (output.rawScore === 0 ? "NO_ACCOMPLISHMENT" : "")}
+                      onValueChange={(v) => {
+                        if (v === "NO_ACCOMPLISHMENT") {
+                          updateOutput(output.id, { geographicLevel: undefined, rawScore: 0 });
+                          return;
+                        }
+                        updateOutput(output.id, { geographicLevel: v, rawScore: undefined });
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Scope / level" />
@@ -359,6 +374,7 @@ export function IndicatorCard({ entry }: { entry: IndicatorEntryState }) {
                             {g.label}
                           </SelectItem>
                         ))}
+                        <SelectItem value="NO_ACCOMPLISHMENT">0 — No Accomplishment</SelectItem>
                       </SelectContent>
                     </Select>
                   )}

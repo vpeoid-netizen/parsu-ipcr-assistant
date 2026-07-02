@@ -222,7 +222,7 @@ export function hasIndicatorInput(entry: IndicatorEntryState, rule: IndicatorDef
   }
   if (entry.outputs.length === 0) return false;
   return entry.outputs.some((o) => {
-    if (o.rawScore != null && o.rawScore > 0) return true;
+    if (o.rawScore != null) return true;
     if (o.stageKey) return true;
     if (o.geographicLevel) return true;
     if (o.fundAmount != null && o.fundAmount > 0) return true;
