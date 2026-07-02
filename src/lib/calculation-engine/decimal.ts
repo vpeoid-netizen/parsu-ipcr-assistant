@@ -565,47 +565,40 @@ export function computeFinalIpcr(
     return { rating: cap(baseIpcr), trace: steps };
   }
 
-  const { designationWeight, ipcrWeight, designationPct, ipcrPct } = getDeloadingWeights(
-    deloadedUnits.toNumber(),
-    totalLoadUnits.toNumber()
-  );
+  const totalLoad = totalLoadUnits;
+  const deloaded = deloadedUnits.gt(totalLoad) ? totalLoad : deloadedUnits;
+  const teachingUnits = totalLoad.minus(deloaded);
 
   steps.push({
-    label: "Designation Rating weight (deloaded ÷ total load)",
-    formula: `${deloadedUnits.toFixed(0)} ÷ ${totalLoadUnits.toFixed(0)}`,
-    value: `${round(designationPct, 2).toFixed(2)}%`,
+    label: "A (deloaded units)",
+    value: deloaded.toFixed(0),
   });
   steps.push({
-    label: "IPCR Rating weight (remaining load ÷ total load)",
-    formula: `(${totalLoadUnits.toFixed(0)} - ${deloadedUnits.toFixed(0)}) ÷ ${totalLoadUnits.toFixed(0)}`,
-    value: `${round(ipcrPct, 2).toFixed(2)}%`,
+    label: "B (total teaching load units)",
+    value: totalLoad.toFixed(0),
   });
 
-  const desigContrib = designationRating.times(designationWeight);
-  const baseContrib = baseIpcr.times(ipcrWeight);
-  const numerator = designationRating.times(deloadedUnits).plus(
-    baseIpcr.times(totalLoadUnits.minus(deloadedUnits))
-  );
+  const designationTerm = designationRating.times(deloaded);
+  const ipcrTerm = baseIpcr.times(teachingUnits);
 
   steps.push({
-    label: "Designation Rating contribution",
-    formula: `${round(designationRating).toFixed(3)} × ${round(designationPct, 2).toFixed(2)}%`,
-    value: round(desigContrib).toFixed(3),
+    label: "Designation Rating × A",
+    formula: `${round(designationRating).toFixed(3)} × ${deloaded.toFixed(0)}`,
+    value: round(designationTerm).toFixed(3),
   });
   steps.push({
-    label: "IPCR Rating contribution",
-    formula: `${round(baseIpcr).toFixed(3)} × ${round(ipcrPct, 2).toFixed(2)}%`,
-    value: round(baseContrib).toFixed(3),
+    label: "IPCR Rating × (B − A)",
+    formula: `${round(baseIpcr).toFixed(3)} × (${totalLoad.toFixed(0)} − ${deloaded.toFixed(0)})`,
+    value: round(ipcrTerm).toFixed(3),
   });
 
+  const final = designationTerm.plus(ipcrTerm).div(totalLoad);
   steps.push({
-    label: "Final IPCR formula",
-    formula: `(${round(designationRating).toFixed(3)} × ${deloadedUnits.toFixed(0)} + ${round(baseIpcr).toFixed(3)} × (${totalLoadUnits.toFixed(0)} - ${deloadedUnits.toFixed(0)})) ÷ ${totalLoadUnits.toFixed(0)}`,
-    value: round(numerator.div(totalLoadUnits)).toFixed(3),
+    label: "Final IPCR Rating",
+    formula: `(${round(designationRating).toFixed(3)} × ${deloaded.toFixed(0)} + ${round(baseIpcr).toFixed(3)} × (${totalLoad.toFixed(0)} − ${deloaded.toFixed(0)})) ÷ ${totalLoad.toFixed(0)}`,
+    value: round(final).toFixed(3),
   });
 
-  const final = desigContrib.plus(baseContrib);
-  steps.push({ label: "Final IPCR", value: round(final).toFixed(3) });
   return { rating: cap(final), trace: steps };
 }
 

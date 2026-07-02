@@ -59,4 +59,17 @@ describe("computeFinalIpcr", () => {
     const { rating } = computeFinalIpcr(base, designation, d(24), d(30), true);
     expect(round(rating).toNumber()).toBe(4.8);
   });
+
+  it("matches the official numerator formula exactly", () => {
+    const base = d(4.2);
+    const designation = d(4.8);
+    const deloaded = d(12);
+    const totalLoad = d(21);
+    const expected = designation
+      .times(deloaded)
+      .plus(base.times(totalLoad.minus(deloaded)))
+      .div(totalLoad);
+    const { rating } = computeFinalIpcr(base, designation, deloaded, totalLoad, true);
+    expect(round(rating).toNumber()).toBe(round(expected).toNumber());
+  });
 });

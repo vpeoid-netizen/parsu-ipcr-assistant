@@ -181,7 +181,7 @@ export function SupportDesignationStep({ section }: { section: "support" | "desi
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Rate designation deliverables. Deloaded units from Step 1 determine how designation rating is weighted into the Final IPCR.
+        Rate designation deliverables. Final IPCR uses ((Designation Rating × A) + (IPCR Rating × (B − A))) ÷ B, where A is deloaded units and B is total teaching load from Step 1.
       </p>
 
       {designationRating != null && (
