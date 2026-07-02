@@ -215,22 +215,10 @@ function mapEntryForCompute(
 
 export function hasIndicatorInput(entry: IndicatorEntryState, rule: IndicatorDefinition): boolean {
   if (rule.measurementType === "NUMERIC_RATING") {
-    return (entry.outputs[0]?.rawScore ?? 0) > 0;
+    return entry.outputs[0]?.rawScore != null;
   }
   if (usesRatingScaleDropdown(rule)) {
-    if (
-      rule.measurementType === "WORKING_DAY_TIMELINESS" ||
-      rule.measurementType === "PERCENTAGE_TARGET" ||
-      rule.measurementType === "PERCENTAGE_NUM_DEN"
-    ) {
-      return entry.outputs[0]?.rawScore != null;
-    }
-    return entry.outputs.some(
-      (o) =>
-        (o.rawScore ?? 0) > 0 ||
-        !!o.stageKey ||
-        !!o.geographicLevel
-    );
+    return entry.outputs.some((o) => o.rawScore != null || !!o.stageKey || !!o.geographicLevel);
   }
   if (entry.outputs.length === 0) return false;
   return entry.outputs.some((o) => {

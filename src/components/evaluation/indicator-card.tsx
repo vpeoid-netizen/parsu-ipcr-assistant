@@ -29,7 +29,7 @@ import {
   usesRatingScaleDropdown,
   type RatingScaleOption,
 } from "@/lib/rating-scales";
-import { DIMENSION_LABELS, formatRating, cn } from "@/lib/utils";
+import { DIMENSION_LABELS, cn } from "@/lib/utils";
 import type { IndicatorDefinition } from "@/data/indicators";
 import type { IndicatorEntryState } from "@/lib/types";
 
@@ -99,7 +99,7 @@ export function IndicatorCard({ entry }: { entry: IndicatorEntryState }) {
   const scaleOptions = getRatingScaleOptions(def);
   const included = isIncludedInRatingPeriod(entry);
   const hasInput = hasIndicatorInput(entry, def);
-  const showRating = included && hasInput && (liveRating > 0 || isMfo4PercentageDropdown(def));
+  const showRating = included && hasInput;
 
   const updateEntry = (patch: Partial<IndicatorEntryState>) => {
     setState((s) => {
@@ -223,7 +223,7 @@ export function IndicatorCard({ entry }: { entry: IndicatorEntryState }) {
               showRating ? "field-computed" : "text-muted-foreground"
             )}
           >
-            {showRating ? formatRating(liveRating) : "—"}
+            {showRating ? liveRating.toFixed(3) : "—"}
           </span>
           {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </div>

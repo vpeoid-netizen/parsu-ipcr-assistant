@@ -15,6 +15,7 @@ const TIMELINESS_SCALE: RatingScaleOption[] = [
   { value: 3, label: "3 — On the deadline" },
   { value: 2, label: "2 — 1–2 working days after deadline" },
   { value: 1, label: "1 — At least 3 working days after deadline" },
+  { value: 0, label: "0 — No accomplishment" },
 ];
 
 const PERCENTAGE_TARGET_SCALE: RatingScaleOption[] = [
@@ -32,8 +33,13 @@ const PERCENTAGE_SATISFACTION_SCALE: RatingScaleOption[] = [
   { value: 3, label: "3 — >80%" },
   { value: 2, label: "2 — >70%" },
   { value: 1, label: "1 — ≤70% and >0" },
-  { value: 0, label: "0 — No valid result" },
+  { value: 0, label: "0 — No accomplishment" },
 ];
+
+function withNoAccomplishmentOption(options: RatingScaleOption[]): RatingScaleOption[] {
+  if (options.some((o) => o.value === 0)) return options;
+  return [...options, { value: 0, label: "0 — No accomplishment" }];
+}
 
 const STAGE_RATINGS: Record<string, number> = {
   AC_ENDORSED: 5,
@@ -67,35 +73,37 @@ export function usesRatingScaleDropdown(indicator: IndicatorDefinition): boolean
 /** Rating-scale dropdown options for timeliness, MFO 1 & 2, and MFO 4 percentage indicators. */
 export function getRatingScaleOptions(indicator: IndicatorDefinition): RatingScaleOption[] {
   if (indicator.measurementType === "WORKING_DAY_TIMELINESS") {
-    return TIMELINESS_SCALE;
+    return withNoAccomplishmentOption(TIMELINESS_SCALE);
   }
 
   if (indicator.measurementType === "PERCENTAGE_TARGET") {
-    return PERCENTAGE_TARGET_SCALE;
+    return withNoAccomplishmentOption(PERCENTAGE_TARGET_SCALE);
   }
 
   if (indicator.measurementType === "PERCENTAGE_NUM_DEN") {
-    return PERCENTAGE_SATISFACTION_SCALE;
+    return withNoAccomplishmentOption(PERCENTAGE_SATISFACTION_SCALE);
   }
 
   if (indicator.stageMovRequirements && indicator.stageMovRequirements.length > 0) {
-    return [...indicator.stageMovRequirements]
+    const stageOptions = [...indicator.stageMovRequirements]
       .map((s) => ({
         value: STAGE_RATINGS[s.stageKey] ?? 0,
         label: `${STAGE_RATINGS[s.stageKey] ?? "?"} — ${s.stageLabel}`,
       }))
       .filter((o) => o.value > 0)
       .sort((a, b) => b.value - a.value);
+    return withNoAccomplishmentOption(stageOptions);
   }
 
   if (indicator.measurementType === "GEOGRAPHIC_LEVEL") {
     const levels =
       indicator.code === "MFO2-Q02" ? GEOGRAPHIC_LEVELS_ENGAGEMENT : GEOGRAPHIC_LEVELS_TRAINING;
-    return levels.map((g) => {
+    const geoOptions = levels.map((g) => {
       const match = g.label.match(/\((\d)\)/);
       const value = match ? parseInt(match[1], 10) : 0;
       return { value, label: g.label };
     });
+    return withNoAccomplishmentOption(geoOptions);
   }
 
   return [];
