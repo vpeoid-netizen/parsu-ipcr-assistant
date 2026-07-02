@@ -116,11 +116,11 @@ function getTimelinessBandDescription(diff: number): string {
 }
 
 /**
- * Validate teaching effectiveness rating (1.00–5.00).
+ * Validate teaching effectiveness rating (0.00–5.00).
  */
 export function validateTeachingRating(value: number): { valid: boolean; rating: D; message?: string } {
-  if (value < 1 || value > 5) {
-    return { valid: false, rating: d(0), message: "Teaching evaluation rating must be between 1.00 and 5.00" };
+  if (value < 0 || value > 5) {
+    return { valid: false, rating: d(0), message: "Teaching evaluation rating must be between 0.00 and 5.00" };
   }
   return { valid: true, rating: d(value) };
 }
