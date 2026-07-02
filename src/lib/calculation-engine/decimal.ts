@@ -384,21 +384,47 @@ export function computePerformanceResults(
   mfo1_2Rating: D,
   mfo3Rating: D,
   mfo4Rating: D,
-  weights: MfoWeights
+  weights: MfoWeights,
+  componentRatings?: { mfo1?: D; mfo2?: D }
 ): { rating: D; trace: ComputationStep[] } {
   const steps: ComputationStep[] = [];
+
+  if (componentRatings?.mfo1 != null) {
+    steps.push({
+      label: "MFO 1 average",
+      value: round(componentRatings.mfo1).toFixed(3),
+    });
+  }
+  if (componentRatings?.mfo2 != null) {
+    steps.push({
+      label: "MFO 2 average",
+      value: round(componentRatings.mfo2).toFixed(3),
+    });
+  }
+  steps.push({
+    label: "MFO 1 & 2 combined average",
+    value: round(mfo1_2Rating).toFixed(3),
+  });
+  steps.push({
+    label: "MFO 3 average",
+    value: round(mfo3Rating).toFixed(3),
+  });
+  steps.push({
+    label: "MFO 4 average",
+    value: round(mfo4Rating).toFixed(3),
+  });
 
   const contributions = [
     { label: "MFO 1 & 2", rating: mfo1_2Rating, weight: weights.mfo1_2 },
     { label: "MFO 3", rating: mfo3Rating, weight: weights.mfo3 },
     { label: "MFO 4", rating: mfo4Rating, weight: weights.mfo4 },
-  ];
+  ].filter((c) => c.weight.gt(0));
 
   contributions.forEach((c) => {
     const contrib = c.rating.times(c.weight);
     steps.push({
       label: `${c.label} contribution`,
-      formula: `${round(c.rating).toFixed(3)} × ${c.weight.times(100).toFixed(0)}%`,
+      formula: `${round(c.rating).toFixed(3)} × ${round(c.weight.times(100), 2).toFixed(2)}%`,
       value: round(contrib).toFixed(3),
     });
   });
@@ -408,6 +434,9 @@ export function computePerformanceResults(
   );
   steps.push({
     label: "Performance Results",
+    formula: contributions
+      .map((c) => `${round(c.weight.times(100), 2).toFixed(2)}% × ${c.label}`)
+      .join(" + "),
     value: round(total).toFixed(3),
   });
 
@@ -489,13 +518,16 @@ export function computeBaseIpcr(
     const spContrib = consolidatedStratPri.times(spWeight);
     const sfContrib = supportFunctionsRating.times(sfWeight);
     steps.push({
-      label: `Performance Results (${prWeight * 100}%)`,
-      formula: `${round(performanceResults).toFixed(3)} × ${prWeight * 100}%`,
+      label: `Performance Results (${round(d(prWeight).times(100), 2).toFixed(2)}%)`,
+      formula: `${round(performanceResults).toFixed(3)} × ${round(d(prWeight).times(100), 2).toFixed(2)}%`,
       value: round(prContrib).toFixed(3),
+      detail: hasStrategicOrPriority
+        ? "Section 7.2 — faculty with support functions"
+        : "Section 7.2 — no Strategic/Priority targets; 10% reallocated to Performance Results",
     });
     if (hasStrategicOrPriority) {
       steps.push({
-        label: "Strategic/Priority (10%)",
+        label: "Strategic/Priority consolidated (10%)",
         formula: `${round(consolidatedStratPri).toFixed(3)} × 10%`,
         value: round(spContrib).toFixed(3),
       });
@@ -515,13 +547,16 @@ export function computeBaseIpcr(
   const prContrib = performanceResults.times(prWeight);
   const spContrib = consolidatedStratPri.times(spWeight);
   steps.push({
-    label: `Performance Results (${prWeight * 100}%)`,
-    formula: `${round(performanceResults).toFixed(3)} × ${prWeight * 100}%`,
+    label: `Performance Results (${round(d(prWeight).times(100), 2).toFixed(2)}%)`,
+    formula: `${round(performanceResults).toFixed(3)} × ${round(d(prWeight).times(100), 2).toFixed(2)}%`,
     value: round(prContrib).toFixed(3),
+    detail: hasStrategicOrPriority
+      ? "Section 7.1 — faculty without support functions"
+      : "Section 7.1 — no Strategic/Priority targets; 15% reallocated to Performance Results",
   });
   if (hasStrategicOrPriority) {
     steps.push({
-      label: "Strategic/Priority (15%)",
+      label: "Strategic/Priority consolidated (15%)",
       formula: `${round(consolidatedStratPri).toFixed(3)} × 15%`,
       value: round(spContrib).toFixed(3),
     });

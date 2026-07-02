@@ -166,7 +166,11 @@ export function computeFullEvaluation(input: FullEvaluationInput): FullEvaluatio
     mfo12Result.rating,
     mfo3Rating,
     mfo4Rating,
-    weights
+    weights,
+    {
+      mfo1: d(mfoRatings["MFO1"]?.rating ?? 0),
+      mfo2: d(mfoRatings["MFO2"]?.rating ?? 0),
+    }
   );
 
   // 4. Strategic/Priority consolidation
