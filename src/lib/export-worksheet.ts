@@ -48,8 +48,7 @@ export function buildWorksheetData(
   if (profile.hasDesignation) {
     facultyRows.push(
       ["Designation", profile.designationTitle || "—"],
-      ["Deloaded Units", String(profile.deloadedUnits)],
-      ["Office Order Verified", profile.officeOrderVerified ? "Yes" : "No"]
+      ["Deloaded Units", String(profile.deloadedUnits)]
     );
   }
 

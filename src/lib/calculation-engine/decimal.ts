@@ -553,19 +553,13 @@ export function computeFinalIpcr(
   designationRating: D,
   deloadedUnits: D,
   totalLoadUnits: D,
-  officeOrderVerified: boolean,
   hasDesignation: boolean
 ): { rating: D; trace: ComputationStep[] } {
   const steps: ComputationStep[] = [];
 
-  if (
-    !hasDesignation ||
-    !officeOrderVerified ||
-    deloadedUnits.lte(0) ||
-    totalLoadUnits.lte(0)
-  ) {
+  if (!hasDesignation || deloadedUnits.lte(0) || totalLoadUnits.lte(0)) {
     steps.push({
-      label: "No verified designation weighting applied",
+      label: "No designation weighting applied",
       value: round(baseIpcr).toFixed(3),
     });
     return { rating: cap(baseIpcr), trace: steps };

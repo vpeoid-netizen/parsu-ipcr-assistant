@@ -22,7 +22,6 @@ export interface EvaluationProfile {
   hasDesignation: boolean;
   deloadedUnits: number;
   teachingLoadUnits: number;
-  officeOrderVerified: boolean;
 }
 
 export interface IndicatorEntry {
@@ -221,7 +220,6 @@ export function computeFullEvaluation(input: FullEvaluationInput): FullEvaluatio
     desigResult.rating,
     d(profile.deloadedUnits),
     d(profile.teachingLoadUnits),
-    profile.officeOrderVerified,
     profile.hasDesignation
   );
 

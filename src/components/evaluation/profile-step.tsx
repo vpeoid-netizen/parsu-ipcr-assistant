@@ -172,13 +172,6 @@ export function ProfileStep() {
               />
             </div>
             <div>
-              <Label>Office Order No.</Label>
-              <Input
-                value={p.officeOrderNo ?? ""}
-                onChange={(e) => updateProfile({ officeOrderNo: e.target.value })}
-              />
-            </div>
-            <div>
               <Label>Deloaded Units</Label>
               <Select
                 value={p.deloadedUnits > 0 ? String(p.deloadedUnits) : ""}
@@ -206,14 +199,6 @@ export function ProfileStep() {
                 </p>
               )}
             </div>
-            <label className="flex items-center gap-2 text-sm sm:col-span-2">
-              <input
-                type="checkbox"
-                checked={p.officeOrderVerified}
-                onChange={(e) => updateProfile({ officeOrderVerified: e.target.checked })}
-              />
-              Office Order verified (required for designation weighting)
-            </label>
           </>
         )}
       </div>

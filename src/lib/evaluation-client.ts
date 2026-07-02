@@ -425,7 +425,6 @@ export function buildComputeInput(state: EvaluationState) {
       hasDesignation: state.profile.hasDesignation,
       deloadedUnits: state.profile.deloadedUnits,
       teachingLoadUnits: TEACHING_LOAD_UNITS,
-      officeOrderVerified: state.profile.officeOrderVerified,
     },
     indicators: state.indicators
       .filter((e) => e.applicabilityStatus === "APPLICABLE")

@@ -181,7 +181,7 @@ export function SupportDesignationStep({ section }: { section: "support" | "desi
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Rate designation deliverables. Office Order must be verified for designation weighting.
+        Rate designation deliverables. Deloaded units from Step 1 determine how designation rating is weighted into the Final IPCR.
       </p>
 
       {designationRating != null && (
