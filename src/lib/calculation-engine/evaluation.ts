@@ -151,13 +151,6 @@ export function computeFullEvaluation(input: FullEvaluationInput): FullEvaluatio
     mfoRatings[mfoCode] = { rating: round(rating).toNumber(), trace: createTrace(trace, rating) };
   }
 
-  const mfo1_2Rating = d(
-    avgRatings(
-      ["MFO1", "MFO2"].flatMap((code) =>
-        (mfoIndicatorMap[code] ?? []).filter((i) => i.applicable).map((i) => i.rating)
-      )
-    )
-  );
   const mfo3Rating = d(mfoRatings["MFO3"]?.rating ?? 0);
   const mfo4Rating = d(mfoRatings["MFO4"]?.rating ?? 0);
 

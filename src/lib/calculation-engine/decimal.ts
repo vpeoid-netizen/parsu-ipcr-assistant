@@ -348,7 +348,7 @@ export function computeMfoRating(
   indicatorRatings: { code: string; rating: D; applicable: boolean }[]
 ): { rating: D; trace: ComputationStep[] } {
   const steps: ComputationStep[] = [];
-  const applicable = indicatorRatings.filter((i) => i.applicable && i.rating.gt(0));
+  const applicable = indicatorRatings.filter((i) => i.applicable);
 
   if (applicable.length === 0) {
     steps.push({ label: "No applicable indicators", value: "0.000" });
