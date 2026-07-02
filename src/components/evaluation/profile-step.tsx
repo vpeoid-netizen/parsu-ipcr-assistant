@@ -5,7 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEvaluation } from "@/components/evaluation/evaluation-context";
 import { TEACHING_LOAD_UNITS } from "@/lib/evaluation-client";
-import { ACADEMIC_RANKS, COLLEGES, RATING_PERIODS } from "@/data/reference";
+import { getDeloadingWeights } from "@/lib/calculation-engine/decimal";
+import {
+  ACADEMIC_RANKS,
+  COLLEGES,
+  DELOADED_UNIT_OPTIONS,
+  RATING_PERIODS,
+  TOTAL_TEACHING_LOAD_UNITS,
+} from "@/data/reference";
 import { APPOINTMENT_LABELS } from "@/lib/utils";
 import type { AppointmentType } from "@/lib/types";
 
@@ -173,11 +180,31 @@ export function ProfileStep() {
             </div>
             <div>
               <Label>Deloaded Units</Label>
-              <Input
-                type="number"
-                value={p.deloadedUnits}
-                onChange={(e) => updateProfile({ deloadedUnits: parseFloat(e.target.value) || 0 })}
-              />
+              <Select
+                value={p.deloadedUnits > 0 ? String(p.deloadedUnits) : ""}
+                onValueChange={(v) => updateProfile({ deloadedUnits: parseInt(v, 10) })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select deloaded units" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DELOADED_UNIT_OPTIONS.map((units) => (
+                    <SelectItem key={units} value={String(units)}>
+                      {units} units
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {p.deloadedUnits > 0 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Weight distribution (of {TOTAL_TEACHING_LOAD_UNITS} units): Designation Rating{" "}
+                  {getDeloadingWeights(p.deloadedUnits, TOTAL_TEACHING_LOAD_UNITS).designationPct
+                    .toFixed(2)}
+                  % · IPCR Rating{" "}
+                  {getDeloadingWeights(p.deloadedUnits, TOTAL_TEACHING_LOAD_UNITS).ipcrPct.toFixed(2)}
+                  %
+                </p>
+              )}
             </div>
             <label className="flex items-center gap-2 text-sm sm:col-span-2">
               <input

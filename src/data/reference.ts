@@ -36,6 +36,12 @@ export const ACADEMIC_RANKS = [
   { title: "Professor VI", category: "PROFESSOR" as const },
 ];
 
+/** Standard full teaching load (units) for designation deloading weights. */
+export const TOTAL_TEACHING_LOAD_UNITS = 18;
+
+/** Allowed deloaded units per designation weighting table. */
+export const DELOADED_UNIT_OPTIONS = [3, 6, 9, 12, 15] as const;
+
 export const PH_HOLIDAYS_2026 = [
   { date: "2026-01-01", name: "New Year's Day" },
   { date: "2026-02-17", name: "Chinese New Year" },

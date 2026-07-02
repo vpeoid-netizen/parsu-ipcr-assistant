@@ -221,7 +221,8 @@ export function computeFullEvaluation(input: FullEvaluationInput): FullEvaluatio
     desigResult.rating,
     d(profile.deloadedUnits),
     d(profile.teachingLoadUnits),
-    profile.officeOrderVerified
+    profile.officeOrderVerified,
+    profile.hasDesignation
   );
 
   const finalRating = round(finalResult.rating).toNumber();

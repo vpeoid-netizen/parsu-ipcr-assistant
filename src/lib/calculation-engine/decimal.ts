@@ -531,17 +531,39 @@ export function computeBaseIpcr(
   return { rating: cap(total), trace: steps };
 }
 
-// Final IPCR with designation weighting
+// Final IPCR with designation weighting (deloaded units ÷ total load)
+export function getDeloadingWeights(
+  deloadedUnits: number,
+  totalLoadUnits: number = 18
+): { designationWeight: D; ipcrWeight: D; designationPct: D; ipcrPct: D } {
+  const total = d(totalLoadUnits > 0 ? totalLoadUnits : 18);
+  const deloaded = d(Math.max(0, Math.min(deloadedUnits, total.toNumber())));
+  const designationWeight = deloaded.div(total);
+  const ipcrWeight = total.minus(deloaded).div(total);
+  return {
+    designationWeight,
+    ipcrWeight,
+    designationPct: designationWeight.times(100),
+    ipcrPct: ipcrWeight.times(100),
+  };
+}
+
 export function computeFinalIpcr(
   baseIpcr: D,
   designationRating: D,
   deloadedUnits: D,
   totalLoadUnits: D,
-  officeOrderVerified: boolean
+  officeOrderVerified: boolean,
+  hasDesignation: boolean
 ): { rating: D; trace: ComputationStep[] } {
   const steps: ComputationStep[] = [];
 
-  if (!officeOrderVerified || deloadedUnits.lte(0) || totalLoadUnits.lte(0)) {
+  if (
+    !hasDesignation ||
+    !officeOrderVerified ||
+    deloadedUnits.lte(0) ||
+    totalLoadUnits.lte(0)
+  ) {
     steps.push({
       label: "No verified designation weighting applied",
       value: round(baseIpcr).toFixed(3),
@@ -549,31 +571,33 @@ export function computeFinalIpcr(
     return { rating: cap(baseIpcr), trace: steps };
   }
 
-  const designationWeight = deloadedUnits.div(totalLoadUnits);
-  const baseWeight = totalLoadUnits.minus(deloadedUnits).div(totalLoadUnits);
+  const { designationWeight, ipcrWeight, designationPct, ipcrPct } = getDeloadingWeights(
+    deloadedUnits.toNumber(),
+    totalLoadUnits.toNumber()
+  );
 
   steps.push({
-    label: "Designation weight (A/B)",
+    label: "Designation Rating weight (deloaded ÷ total load)",
     formula: `${deloadedUnits.toFixed(0)} ÷ ${totalLoadUnits.toFixed(0)}`,
-    value: `${round(designationWeight.times(100), 1).toFixed(1)}%`,
+    value: `${round(designationPct, 2).toFixed(2)}%`,
   });
   steps.push({
-    label: "Base IPCR weight ((B-A)/B)",
+    label: "IPCR Rating weight (remaining load ÷ total load)",
     formula: `(${totalLoadUnits.toFixed(0)} - ${deloadedUnits.toFixed(0)}) ÷ ${totalLoadUnits.toFixed(0)}`,
-    value: `${round(baseWeight.times(100), 1).toFixed(1)}%`,
+    value: `${round(ipcrPct, 2).toFixed(2)}%`,
   });
 
   const desigContrib = designationRating.times(designationWeight);
-  const baseContrib = baseIpcr.times(baseWeight);
+  const baseContrib = baseIpcr.times(ipcrWeight);
 
   steps.push({
-    label: "Designation contribution",
-    formula: `${round(designationRating).toFixed(3)} × ${round(designationWeight.times(100), 1).toFixed(1)}%`,
+    label: "Designation Rating contribution",
+    formula: `${round(designationRating).toFixed(3)} × ${round(designationPct, 2).toFixed(2)}%`,
     value: round(desigContrib).toFixed(3),
   });
   steps.push({
-    label: "Base IPCR contribution",
-    formula: `${round(baseIpcr).toFixed(3)} × ${round(baseWeight.times(100), 1).toFixed(1)}%`,
+    label: "IPCR Rating contribution",
+    formula: `${round(baseIpcr).toFixed(3)} × ${round(ipcrPct, 2).toFixed(2)}%`,
     value: round(baseContrib).toFixed(3),
   });
 
