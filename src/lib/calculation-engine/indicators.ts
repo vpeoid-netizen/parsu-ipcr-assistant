@@ -60,8 +60,8 @@ export function computeIndicatorRating(
   switch (rule.measurementType) {
     case "NUMERIC_RATING": {
       const value = outputs[0]?.rawScore ?? manualRating ?? 0;
-      if (value < 0 || value > 5) {
-        warnings.push("Teaching evaluation rating must be between 0.00 and 5.00");
+      if (value < 1 || value > 5) {
+        warnings.push("Teaching evaluation rating must be between 1.00 and 5.00");
         return createTrace(allSteps, d(0), warnings, false);
       }
       allSteps.push({ label: "Teaching evaluation rating", value: value.toFixed(3) });

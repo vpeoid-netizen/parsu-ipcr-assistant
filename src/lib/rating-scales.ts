@@ -18,15 +18,6 @@ const TIMELINESS_SCALE: RatingScaleOption[] = [
   { value: 0, label: "0 — No accomplishment" },
 ];
 
-const NUMERIC_RATING_SCALE: RatingScaleOption[] = [
-  { value: 5, label: "5 — Outstanding" },
-  { value: 4, label: "4 — Very Satisfactory" },
-  { value: 3, label: "3 — Satisfactory" },
-  { value: 2, label: "2 — Unsatisfactory" },
-  { value: 1, label: "1 — Poor" },
-  { value: 0, label: "0 — No accomplishment" },
-];
-
 const PERCENTAGE_TARGET_SCALE: RatingScaleOption[] = [
   { value: 5, label: "5 — >115% of target" },
   { value: 4, label: "4 — >100% and ≤115% of target" },
@@ -72,7 +63,7 @@ export function isMfo4PercentageDropdown(indicator: IndicatorDefinition): boolea
 
 /** Indicators that use a rating-scale dropdown instead of free-form or date inputs. */
 export function usesRatingScaleDropdown(indicator: IndicatorDefinition): boolean {
-  if (indicator.measurementType === "NUMERIC_RATING") return true;
+  if (indicator.measurementType === "NUMERIC_RATING") return false;
   if (indicator.measurementType === "WORKING_DAY_TIMELINESS") return true;
   if (isMfo4PercentageDropdown(indicator)) return true;
   if (isMfo12Indicator(indicator.mfoCode)) return true;
@@ -81,10 +72,6 @@ export function usesRatingScaleDropdown(indicator: IndicatorDefinition): boolean
 
 /** Rating-scale dropdown options for timeliness, MFO 1 & 2, and MFO 4 percentage indicators. */
 export function getRatingScaleOptions(indicator: IndicatorDefinition): RatingScaleOption[] {
-  if (indicator.measurementType === "NUMERIC_RATING") {
-    return withNoAccomplishmentOption(NUMERIC_RATING_SCALE);
-  }
-
   if (indicator.measurementType === "WORKING_DAY_TIMELINESS") {
     return withNoAccomplishmentOption(TIMELINESS_SCALE);
   }

@@ -181,11 +181,10 @@ export function IndicatorCard({ entry }: { entry: IndicatorEntryState }) {
         : GEOGRAPHIC_LEVELS_TRAINING;
 
   const stages = def.stageMovRequirements ?? [];
+  const isNumericInput = def.measurementType === "NUMERIC_RATING";
   const isSingleDropdown =
     useDropdown &&
-    (def.measurementType === "NUMERIC_RATING" ||
-      def.measurementType === "WORKING_DAY_TIMELINESS" ||
-      isMfo4PercentageDropdown(def));
+    (def.measurementType === "WORKING_DAY_TIMELINESS" || isMfo4PercentageDropdown(def));
   const isMultiDropdown =
     useDropdown &&
     !isSingleDropdown &&
@@ -245,13 +244,32 @@ export function IndicatorCard({ entry }: { entry: IndicatorEntryState }) {
           <MovGuidance indicator={def} />
 
           <fieldset disabled={!included} className={cn("space-y-4", !included && "pointer-events-none opacity-60")}>
+          {isNumericInput && (
+            <div>
+              <Label>Teaching evaluation rating (1.00–5.00)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                min={1}
+                max={5}
+                value={entry.outputs[0]?.rawScore ?? ""}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  const id = entry.outputs[0]?.id ?? uid();
+                  if (isNaN(val)) {
+                    updateEntry({ outputs: [{ id, rawScore: undefined }] });
+                    return;
+                  }
+                  const clamped = Math.min(5, Math.max(1, val));
+                  updateEntry({ outputs: [{ id, rawScore: clamped }] });
+                }}
+              />
+            </div>
+          )}
+
           {isSingleDropdown && (
             <div>
-              <Label>
-                {def.measurementType === "NUMERIC_RATING"
-                  ? "Teaching evaluation rating"
-                  : "Rating"}
-              </Label>
+              <Label>Rating</Label>
               <RatingScaleSelect
                 options={scaleOptions}
                 value={entry.outputs[0]?.rawScore}
@@ -311,7 +329,7 @@ export function IndicatorCard({ entry }: { entry: IndicatorEntryState }) {
             </div>
           )}
 
-          {!useDropdown && (
+          {!useDropdown && !isNumericInput && (
             <div className="space-y-3">
               {entry.outputs.map((output) => (
                 <div key={output.id} className="rounded border p-3 space-y-2 bg-muted/20">
