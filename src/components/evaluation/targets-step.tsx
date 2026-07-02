@@ -78,6 +78,7 @@ export function TargetsStep({ type }: { type: "strategic" | "priority" }) {
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
         {title} — enter assigned targets and accomplishments. Required MOV (reference): {movNote}.
+        {!showCosToggle && " Strategic and Priority Results are mandatory for permanent and temporary faculty."}
       </p>
 
       {showCosToggle && (

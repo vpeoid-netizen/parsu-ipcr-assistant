@@ -523,7 +523,7 @@ export function computeBaseIpcr(
       value: round(prContrib).toFixed(3),
       detail: hasStrategicOrPriority
         ? "Section 7.2 — faculty with support functions"
-        : "Section 7.2 — no Strategic/Priority targets; 10% reallocated to Performance Results",
+        : "Section 7.2 — COS faculty without Strategic/Priority; 10% reallocated to Performance Results",
     });
     if (hasStrategicOrPriority) {
       steps.push({
@@ -552,7 +552,7 @@ export function computeBaseIpcr(
     value: round(prContrib).toFixed(3),
     detail: hasStrategicOrPriority
       ? "Section 7.1 — faculty without support functions"
-      : "Section 7.1 — no Strategic/Priority targets; 15% reallocated to Performance Results",
+      : "Section 7.1 — COS faculty without Strategic/Priority; 15% reallocated to Performance Results",
   });
   if (hasStrategicOrPriority) {
     steps.push({

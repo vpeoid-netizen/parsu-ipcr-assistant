@@ -349,29 +349,22 @@ export function isCosInstructor(profile: EvaluationProfile): boolean {
 }
 
 export function effectiveStrategicHasAssignedTarget(state: EvaluationState): boolean {
-  if (!isCosFaculty(state.profile)) {
-    return state.strategicTargets.some(hasTargetInput);
-  }
+  if (!isCosFaculty(state.profile)) return true;
   if (state.strategicHasAssignedTarget != null) return state.strategicHasAssignedTarget;
   return state.strategicTargets.some(hasTargetInput);
 }
 
 export function effectivePriorityHasAssignedTarget(state: EvaluationState): boolean {
-  if (!isCosFaculty(state.profile)) {
-    return state.priorityTargets.some(hasTargetInput);
-  }
+  if (!isCosFaculty(state.profile)) return true;
   if (state.priorityHasAssignedTarget != null) return state.priorityHasAssignedTarget;
   return state.priorityTargets.some(hasTargetInput);
 }
 
+/** Strategic/Priority are mandatory for permanent and temporary faculty; COS may opt out. */
 export function hasStrategicOrPriorityForComputation(state: EvaluationState): boolean {
-  if (isCosFaculty(state.profile)) {
-    return (
-      effectiveStrategicHasAssignedTarget(state) || effectivePriorityHasAssignedTarget(state)
-    );
-  }
+  if (!isCosFaculty(state.profile)) return true;
   return (
-    state.strategicTargets.some(hasTargetInput) || state.priorityTargets.some(hasTargetInput)
+    effectiveStrategicHasAssignedTarget(state) || effectivePriorityHasAssignedTarget(state)
   );
 }
 

@@ -48,9 +48,14 @@ describe("computeBaseIpcr", () => {
     expect(round(rating).toNumber()).toBe(4.15);
   });
 
-  it("reallocates Strategic/Priority weight when no targets are assigned", () => {
+  it("reallocates Strategic/Priority weight only when that KRA is not in scope (COS opt-out)", () => {
     const { rating } = computeBaseIpcr(d(4), d(0), d(0), false, false);
     expect(round(rating).toNumber()).toBe(4);
+  });
+
+  it("always applies 85/15 split when Strategic/Priority is mandatory", () => {
+    const { rating } = computeBaseIpcr(d(4), d(0), d(0), false, true);
+    expect(round(rating).toNumber()).toBe(3.4);
   });
 
   it("applies Section 7.2 weights with support functions", () => {
@@ -58,7 +63,7 @@ describe("computeBaseIpcr", () => {
     expect(round(rating).toNumber()).toBe(4);
   });
 
-  it("reallocates Strategic/Priority weight for support-function faculty without targets", () => {
+  it("reallocates Strategic/Priority weight for COS faculty without assigned targets", () => {
     const { rating } = computeBaseIpcr(d(4), d(0), d(3), true, false);
     expect(round(rating).toNumber()).toBe(3.9);
   });
