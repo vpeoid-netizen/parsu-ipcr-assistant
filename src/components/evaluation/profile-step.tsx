@@ -4,14 +4,11 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEvaluation } from "@/components/evaluation/evaluation-context";
-import { TEACHING_LOAD_UNITS } from "@/lib/evaluation-client";
 import { getDeloadingWeights } from "@/lib/calculation-engine/decimal";
 import {
   ACADEMIC_RANKS,
   COLLEGES,
-  DELOADED_UNIT_OPTIONS,
   RATING_PERIODS,
-  TOTAL_TEACHING_LOAD_UNITS,
 } from "@/data/reference";
 import { APPOINTMENT_LABELS } from "@/lib/utils";
 import type { AppointmentType } from "@/lib/types";
@@ -136,10 +133,11 @@ export function ProfileStep() {
           <Label>Total Teaching Load (units)</Label>
           <Input
             type="number"
-            value={TEACHING_LOAD_UNITS}
-            readOnly
-            disabled
-            className="bg-muted text-muted-foreground"
+            min={1}
+            value={p.teachingLoadUnits}
+            onChange={(e) =>
+              updateProfile({ teachingLoadUnits: Math.max(1, parseInt(e.target.value, 10) || 1) })
+            }
           />
         </div>
 
@@ -173,29 +171,20 @@ export function ProfileStep() {
             </div>
             <div>
               <Label>Deloaded Units</Label>
-              <Select
-                value={p.deloadedUnits > 0 ? String(p.deloadedUnits) : ""}
-                onValueChange={(v) => updateProfile({ deloadedUnits: parseInt(v, 10) })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select deloaded units" />
-                </SelectTrigger>
-                <SelectContent>
-                  {DELOADED_UNIT_OPTIONS.map((units) => (
-                    <SelectItem key={units} value={String(units)}>
-                      {units} units
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input
+                type="number"
+                min={0}
+                value={p.deloadedUnits}
+                onChange={(e) =>
+                  updateProfile({ deloadedUnits: Math.max(0, parseInt(e.target.value, 10) || 0) })
+                }
+              />
               {p.deloadedUnits > 0 && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  Weight distribution (of {TOTAL_TEACHING_LOAD_UNITS} units): Designation Rating{" "}
-                  {getDeloadingWeights(p.deloadedUnits, TOTAL_TEACHING_LOAD_UNITS).designationPct
-                    .toFixed(2)}
+                  Weight distribution (of {p.teachingLoadUnits} units): Designation Rating{" "}
+                  {getDeloadingWeights(p.deloadedUnits, p.teachingLoadUnits).designationPct.toFixed(2)}
                   % · IPCR Rating{" "}
-                  {getDeloadingWeights(p.deloadedUnits, TOTAL_TEACHING_LOAD_UNITS).ipcrPct.toFixed(2)}
-                  %
+                  {getDeloadingWeights(p.deloadedUnits, p.teachingLoadUnits).ipcrPct.toFixed(2)}%
                 </p>
               )}
             </div>

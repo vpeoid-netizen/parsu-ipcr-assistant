@@ -583,6 +583,9 @@ export function computeFinalIpcr(
 
   const desigContrib = designationRating.times(designationWeight);
   const baseContrib = baseIpcr.times(ipcrWeight);
+  const numerator = designationRating.times(deloadedUnits).plus(
+    baseIpcr.times(totalLoadUnits.minus(deloadedUnits))
+  );
 
   steps.push({
     label: "Designation Rating contribution",
@@ -593,6 +596,12 @@ export function computeFinalIpcr(
     label: "IPCR Rating contribution",
     formula: `${round(baseIpcr).toFixed(3)} × ${round(ipcrPct, 2).toFixed(2)}%`,
     value: round(baseContrib).toFixed(3),
+  });
+
+  steps.push({
+    label: "Final IPCR formula",
+    formula: `(${round(designationRating).toFixed(3)} × ${deloadedUnits.toFixed(0)} + ${round(baseIpcr).toFixed(3)} × (${totalLoadUnits.toFixed(0)} - ${deloadedUnits.toFixed(0)})) ÷ ${totalLoadUnits.toFixed(0)}`,
+    value: round(numerator.div(totalLoadUnits)).toFixed(3),
   });
 
   const final = desigContrib.plus(baseContrib);

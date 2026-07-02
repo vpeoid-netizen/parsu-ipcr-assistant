@@ -52,7 +52,7 @@ export function getApplicableIndicators(
   return INDICATOR_SEEDS.filter((ind) => isIndicatorApplicable(ind, rankCategory, appointmentType));
 }
 
-export const TEACHING_LOAD_UNITS = 18;
+export const DEFAULT_TEACHING_LOAD_UNITS = 18;
 
 export function createDefaultProfile(): EvaluationProfile {
   return {
@@ -64,7 +64,7 @@ export function createDefaultProfile(): EvaluationProfile {
     appointmentType: "PERMANENT",
     evaluationYear: 2026,
     ratingPeriod: "January–June",
-    teachingLoadUnits: TEACHING_LOAD_UNITS,
+    teachingLoadUnits: DEFAULT_TEACHING_LOAD_UNITS,
     hasSupportFunctions: false,
     hasDesignation: false,
     deloadedUnits: 0,
@@ -424,7 +424,10 @@ export function buildComputeInput(state: EvaluationState) {
       hasSupportFunctions: state.profile.hasSupportFunctions,
       hasDesignation: state.profile.hasDesignation,
       deloadedUnits: state.profile.deloadedUnits,
-      teachingLoadUnits: TEACHING_LOAD_UNITS,
+      teachingLoadUnits:
+        state.profile.teachingLoadUnits > 0
+          ? state.profile.teachingLoadUnits
+          : DEFAULT_TEACHING_LOAD_UNITS,
     },
     indicators: state.indicators
       .filter((e) => e.applicabilityStatus === "APPLICABLE")
@@ -647,7 +650,13 @@ export function loadSession(): EvaluationState | null {
     const state = JSON.parse(raw) as EvaluationState;
     return {
       ...state,
-      profile: { ...state.profile, teachingLoadUnits: TEACHING_LOAD_UNITS },
+      profile: {
+        ...state.profile,
+        teachingLoadUnits:
+          state.profile.teachingLoadUnits > 0
+            ? state.profile.teachingLoadUnits
+            : DEFAULT_TEACHING_LOAD_UNITS,
+      },
       indicators: state.indicators.map((e) =>
         normalizeIndicatorEntry(e, state.profile.rankCategory)
       ),

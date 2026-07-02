@@ -52,4 +52,11 @@ describe("computeFinalIpcr", () => {
     const { rating } = computeFinalIpcr(base, d(5), d(9), d(18), false);
     expect(round(rating).toNumber()).toBe(4.25);
   });
+
+  it("supports deloading scenarios where units are higher than 18", () => {
+    const base = d(4);
+    const designation = d(5);
+    const { rating } = computeFinalIpcr(base, designation, d(24), d(30), true);
+    expect(round(rating).toNumber()).toBe(4.8);
+  });
 });
