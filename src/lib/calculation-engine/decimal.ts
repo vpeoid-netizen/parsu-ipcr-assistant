@@ -671,22 +671,48 @@ export function computeFinalIpcr(
   return { rating: cap(final), trace: steps };
 }
 
-// Support functions average
+// Support functions average — identified deliverables with composite 0 stay in the divisor
 export function computeSupportFunctionsRating(
   deliverables: { compositeRating: D }[]
 ): { rating: D; trace: ComputationStep[] } {
   const steps: ComputationStep[] = [];
-  const valid = deliverables.filter((d) => d.compositeRating.gt(0));
-  if (valid.length === 0) {
+  if (deliverables.length === 0) {
     steps.push({ label: "No support function deliverables", value: "0.000" });
     return { rating: d(0), trace: steps };
   }
-  valid.forEach((d, i) => {
-    steps.push({ label: `Deliverable ${i + 1}`, value: round(d.compositeRating).toFixed(3) });
+
+  deliverables.forEach((entry, i) => {
+    steps.push({
+      label: `Deliverable ${i + 1}`,
+      value: round(entry.compositeRating).toFixed(3),
+    });
   });
-  const average = avg(valid.map((d) => d.compositeRating));
+
+  const ratings = deliverables.map((entry) => entry.compositeRating);
+  const average = avg(ratings);
   steps.push({
     label: "Support Functions average",
+    formula: `(${ratings.map((r) => round(r).toFixed(3)).join(" + ")}) ÷ ${ratings.length}`,
+    value: round(cap(average)).toFixed(3),
+  });
+  return { rating: cap(average), trace: steps };
+}
+
+function computeDeliverablesAverageExcludingZero(
+  deliverables: { compositeRating: D }[]
+): { rating: D; trace: ComputationStep[] } {
+  const steps: ComputationStep[] = [];
+  const valid = deliverables.filter((entry) => entry.compositeRating.gt(0));
+  if (valid.length === 0) {
+    steps.push({ label: "No deliverables rated", value: "0.000" });
+    return { rating: d(0), trace: steps };
+  }
+  valid.forEach((entry, i) => {
+    steps.push({ label: `Deliverable ${i + 1}`, value: round(entry.compositeRating).toFixed(3) });
+  });
+  const average = avg(valid.map((entry) => entry.compositeRating));
+  steps.push({
+    label: "Deliverables average",
     value: round(cap(average)).toFixed(3),
   });
   return { rating: cap(average), trace: steps };
@@ -696,7 +722,7 @@ export function computeSupportFunctionsRating(
 export function computeDesignationRating(
   deliverables: { compositeRating: D }[]
 ): { rating: D; trace: ComputationStep[] } {
-  return computeSupportFunctionsRating(deliverables);
+  return computeDeliverablesAverageExcludingZero(deliverables);
 }
 
 // MFO weights by rank category

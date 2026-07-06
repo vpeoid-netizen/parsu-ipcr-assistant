@@ -11,6 +11,7 @@ import { useEvaluation } from "@/components/evaluation/evaluation-context";
 import {
   computeDeliverableComposite,
   computeDesignationLive,
+  computeSupportFunctionComposite,
   computeSupportFunctionsLive,
   uid,
 } from "@/lib/evaluation-client";
@@ -20,6 +21,7 @@ import type { DesignationDeliverableState, SupportFunctionState } from "@/lib/ty
 function RatingFields({
   item,
   onChange,
+  allowZero = false,
 }: {
   item: {
     qualityRating?: number;
@@ -31,6 +33,7 @@ function RatingFields({
     efficiencyRating?: number;
     timelinessRating?: number;
   }) => void;
+  allowZero?: boolean;
 }) {
   return (
     <div className="grid grid-cols-3 gap-2">
@@ -39,10 +42,10 @@ function RatingFields({
           <Label className="text-xs capitalize">{field.replace("Rating", "")}</Label>
           <Input
             type="number"
-            min={1}
+            min={allowZero ? 0 : 1}
             max={5}
             step="any"
-            placeholder="1–5"
+            placeholder={allowZero ? "0–5" : "1–5"}
             value={item[field] ?? ""}
             onChange={(e) => {
               const v = e.target.value.trim();
@@ -55,8 +58,14 @@ function RatingFields({
   );
 }
 
-function DeliverableRatingHeader({ composite }: { composite: number | null }) {
-  const hasInput = composite != null;
+function DeliverableRatingHeader({
+  composite,
+  includeZero = false,
+}: {
+  composite: number | null;
+  includeZero?: boolean;
+}) {
+  const hasInput = composite != null && (includeZero || composite > 0);
   return (
     <>
       <div className="flex justify-between items-start gap-2">
@@ -111,7 +120,8 @@ export function SupportDesignationStep({ section }: { section: "support" | "desi
     return (
       <div className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Rate each support function using Quality, Efficiency, and Timeliness (1–5).
+          Rate each support function using Quality, Efficiency, and Timeliness (0–5). A rating of 0
+          is included in the section average.
         </p>
 
         {supportRating != null && (
@@ -127,7 +137,7 @@ export function SupportDesignationStep({ section }: { section: "support" | "desi
         )}
 
         {list.map((sf) => {
-          const composite = computeDeliverableComposite(sf);
+          const composite = computeSupportFunctionComposite(sf);
           return (
             <div key={sf.id} className="rounded-lg border p-4 space-y-3">
               <div className="flex justify-end">
@@ -135,7 +145,7 @@ export function SupportDesignationStep({ section }: { section: "support" | "desi
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
-              <DeliverableRatingHeader composite={composite} />
+              <DeliverableRatingHeader composite={composite} includeZero />
               <Input
                 placeholder="Role"
                 value={sf.role}
@@ -157,6 +167,7 @@ export function SupportDesignationStep({ section }: { section: "support" | "desi
               />
               <RatingFields
                 item={sf}
+                allowZero
                 onChange={(patch) =>
                   update(list.map((x) => (x.id === sf.id ? { ...x, ...patch } : x)))
                 }

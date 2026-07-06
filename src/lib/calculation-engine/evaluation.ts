@@ -88,9 +88,16 @@ function avgRatings(ratings: number[]): number {
   return valid.reduce((a, b) => a + b, 0) / valid.length;
 }
 
-function compositeRating(sf: SupportFunctionInput): number {
-  const ratings = [sf.qualityRating, sf.efficiencyRating, sf.timelinessRating].filter((r) => r > 0);
-  return avgRatings(ratings);
+function supportFunctionComposite(sf: SupportFunctionInput): number {
+  const ratings = [sf.qualityRating, sf.efficiencyRating, sf.timelinessRating].filter(
+    (r) => r != null && !Number.isNaN(r)
+  );
+  if (ratings.length === 0) return 0;
+  return ratings.reduce((a, b) => a + b, 0) / ratings.length;
+}
+
+function designationComposite(sf: SupportFunctionInput): number {
+  return avgRatings([sf.qualityRating, sf.efficiencyRating, sf.timelinessRating]);
 }
 
 export function computeFullEvaluation(input: FullEvaluationInput): FullEvaluationResult {
@@ -181,13 +188,13 @@ export function computeFullEvaluation(input: FullEvaluationInput): FullEvaluatio
 
   // 5. Support Functions
   const sfRatings = input.supportFunctions.map((sf) => ({
-    compositeRating: d(compositeRating(sf)),
+    compositeRating: d(supportFunctionComposite(sf)),
   }));
   const sfResult = computeSupportFunctionsRating(sfRatings);
 
   // 6. Designation
   const desigRatings = input.designationDeliverables.map((dd) => ({
-    compositeRating: d(compositeRating(dd)),
+    compositeRating: d(designationComposite(dd)),
   }));
   const desigResult = computeDesignationRating(desigRatings);
 

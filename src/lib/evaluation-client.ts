@@ -383,6 +383,16 @@ export function hasDeliverableRatingInput(item: {
   );
 }
 
+export function hasSupportFunctionRatingInput(item: {
+  qualityRating?: number;
+  efficiencyRating?: number;
+  timelinessRating?: number;
+}): boolean {
+  return [item.qualityRating, item.efficiencyRating, item.timelinessRating].some(
+    (r) => r != null && !Number.isNaN(r)
+  );
+}
+
 export function buildComputeInput(state: EvaluationState) {
   const indMap = new Map(INDICATOR_SEEDS.map((i) => [i.code, i]));
 
@@ -435,12 +445,12 @@ export function buildComputeInput(state: EvaluationState) {
       : [],
     hasStrategicOrPriority: hasStrategicOrPriorityForComputation(state),
     supportFunctions: state.supportFunctions
-      .filter(hasDeliverableRatingInput)
+      .filter(hasSupportFunctionRatingInput)
       .map((sf) => ({
-      qualityRating: sf.qualityRating ?? 0,
-      efficiencyRating: sf.efficiencyRating ?? 0,
-      timelinessRating: sf.timelinessRating ?? 0,
-    })),
+        qualityRating: sf.qualityRating ?? 0,
+        efficiencyRating: sf.efficiencyRating ?? 0,
+        timelinessRating: sf.timelinessRating ?? 0,
+      })),
     designationDeliverables: state.designationDeliverables
       .filter(hasDeliverableRatingInput)
       .map((dd) => ({
@@ -486,6 +496,18 @@ export function computeDeliverableComposite(item: {
   return ratings.reduce((a, b) => a + b, 0) / ratings.length;
 }
 
+export function computeSupportFunctionComposite(item: {
+  qualityRating?: number;
+  efficiencyRating?: number;
+  timelinessRating?: number;
+}): number | null {
+  const ratings = [item.qualityRating, item.efficiencyRating, item.timelinessRating].filter(
+    (r): r is number => r != null && !Number.isNaN(r)
+  );
+  if (ratings.length === 0) return null;
+  return ratings.reduce((a, b) => a + b, 0) / ratings.length;
+}
+
 export function computeDeliverablesSectionRating(
   items: { qualityRating?: number; efficiencyRating?: number; timelinessRating?: number }[]
 ): number | null {
@@ -496,8 +518,19 @@ export function computeDeliverablesSectionRating(
   return composites.reduce((a, b) => a + b, 0) / composites.length;
 }
 
+export function computeSupportFunctionsSectionRating(
+  items: { qualityRating?: number; efficiencyRating?: number; timelinessRating?: number }[]
+): number | null {
+  const composites = items
+    .filter(hasSupportFunctionRatingInput)
+    .map(computeSupportFunctionComposite)
+    .filter((r): r is number => r != null);
+  if (composites.length === 0) return null;
+  return composites.reduce((a, b) => a + b, 0) / composites.length;
+}
+
 export function computeSupportFunctionsLive(state: EvaluationState): number | null {
-  return computeDeliverablesSectionRating(state.supportFunctions);
+  return computeSupportFunctionsSectionRating(state.supportFunctions);
 }
 
 export function computeDesignationLive(state: EvaluationState): number | null {
