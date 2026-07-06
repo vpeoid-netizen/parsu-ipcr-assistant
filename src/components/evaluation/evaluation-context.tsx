@@ -10,6 +10,7 @@ import {
   createSession,
   deleteSessionById,
   getActiveSessionId,
+  isLocalStorageAvailable,
   listSessions,
   loadSessionById,
   saveSessionById,
@@ -22,7 +23,9 @@ interface EvaluationContextValue {
   state: EvaluationState | null;
   setState: React.Dispatch<React.SetStateAction<EvaluationState | null>>;
   hydrated: boolean;
+  storageAvailable: boolean;
   lastSavedAt: string | null;
+  saveError: string | null;
   activeSessionId: string | null;
   activeSessionTitle: string | null;
   sessions: SessionSummary[];
@@ -30,6 +33,7 @@ interface EvaluationContextValue {
   openSession: (id: string) => void;
   closeSession: () => void;
   deleteSession: (id: string) => void;
+  saveNow: () => boolean;
   updateProfile: (patch: Partial<EvaluationState["profile"]>) => void;
   computation: ReturnType<typeof computeLiveEvaluation> | null;
 }
@@ -39,7 +43,9 @@ const EvaluationContext = createContext<EvaluationContextValue | null>(null);
 export function EvaluationProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<EvaluationState | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [storageAvailable, setStorageAvailable] = useState(true);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [activeSessionId, setActiveSessionIdState] = useState<string | null>(null);
   const [activeSessionTitle, setActiveSessionTitle] = useState<string | null>(null);
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
@@ -48,7 +54,25 @@ export function EvaluationProvider({ children }: { children: React.ReactNode }) 
     setSessions(listSessions());
   }, []);
 
+  const persistActiveSession = useCallback(
+    (nextState: EvaluationState, sessionId: string) => {
+      const result = saveSessionById(sessionId, nextState);
+      if (result.ok) {
+        setLastSavedAt(result.savedAt);
+        setSaveError(null);
+        refreshSessions();
+        const title = nextState.profile.facultyName?.trim() || "Untitled evaluation";
+        setActiveSessionTitle(title);
+        return true;
+      }
+      setSaveError(result.error);
+      return false;
+    },
+    [refreshSessions]
+  );
+
   useEffect(() => {
+    setStorageAvailable(isLocalStorageAvailable());
     refreshSessions();
     const activeId = getActiveSessionId();
     if (activeId) {
@@ -67,24 +91,46 @@ export function EvaluationProvider({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     if (hydrated && state && activeSessionId) {
-      const savedAt = saveSessionById(activeSessionId, state);
-      if (savedAt) {
-        setLastSavedAt(savedAt);
-        refreshSessions();
-        const title = state.profile.facultyName?.trim() || "Untitled evaluation";
-        setActiveSessionTitle(title);
-      }
+      persistActiveSession(state, activeSessionId);
     }
-  }, [state, hydrated, activeSessionId, refreshSessions]);
+  }, [state, hydrated, activeSessionId, persistActiveSession]);
+
+  useEffect(() => {
+    if (!state || !activeSessionId) return;
+
+    const handleBeforeUnload = () => {
+      saveSessionById(activeSessionId, state);
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [state, activeSessionId]);
+
+  const saveNow = useCallback(() => {
+    if (!state || !activeSessionId) return false;
+    return persistActiveSession(state, activeSessionId);
+  }, [state, activeSessionId, persistActiveSession]);
 
   const startEvaluation = useCallback(() => {
+    if (!isLocalStorageAvailable()) {
+      setStorageAvailable(false);
+      setSaveError(
+        "Browser local storage is disabled or unavailable. Enable storage for this site to save evaluations."
+      );
+      return;
+    }
+
     const initial = createInitialState();
     const id = createSession(initial);
-    if (!id) return;
+    if (!id) {
+      setSaveError("Could not create a new evaluation in browser local storage.");
+      return;
+    }
     setState(initial);
     setActiveSessionIdState(id);
     setActiveSessionTitle("Untitled evaluation");
     setLastSavedAt(new Date().toISOString());
+    setSaveError(null);
     refreshSessions();
   }, [refreshSessions]);
 
@@ -99,19 +145,23 @@ export function EvaluationProvider({ children }: { children: React.ReactNode }) 
       setActiveSessionIdState(id);
       setActiveSessionTitle(loaded.title);
       setLastSavedAt(loaded.savedAt);
+      setSaveError(null);
       setActiveSessionId(id);
     },
     [refreshSessions]
   );
 
   const closeSession = useCallback(() => {
+    if (state && activeSessionId) {
+      persistActiveSession(state, activeSessionId);
+    }
     setState(null);
     setActiveSessionIdState(null);
     setActiveSessionTitle(null);
     setLastSavedAt(null);
     setActiveSessionId(null);
     refreshSessions();
-  }, [refreshSessions]);
+  }, [state, activeSessionId, persistActiveSession, refreshSessions]);
 
   const deleteSession = useCallback(
     (id: string) => {
@@ -150,7 +200,9 @@ export function EvaluationProvider({ children }: { children: React.ReactNode }) 
         state,
         setState,
         hydrated,
+        storageAvailable,
         lastSavedAt,
+        saveError,
         activeSessionId,
         activeSessionTitle,
         sessions,
@@ -158,6 +210,7 @@ export function EvaluationProvider({ children }: { children: React.ReactNode }) 
         openSession,
         closeSession,
         deleteSession,
+        saveNow,
         updateProfile,
         computation,
       }}

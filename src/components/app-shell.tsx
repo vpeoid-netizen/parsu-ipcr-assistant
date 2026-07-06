@@ -17,7 +17,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <footer className="border-t bg-white py-3 text-center text-xs text-muted-foreground">
         <p>Partido State University &mdash; IPCR rating computation assistant</p>
         <p className="mt-0.5">
-          Multiple evaluations saved locally in your browser &bull; MOV shown as reference only &bull; Rev{" "}
+          Saved to browser local storage &bull; MOV shown as reference only &bull; Rev{" "}
           {APP_REVISION}
         </p>
       </footer>

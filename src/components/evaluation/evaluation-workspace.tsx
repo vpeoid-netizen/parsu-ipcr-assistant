@@ -25,8 +25,16 @@ const MFO_STEP_MAP: Record<number, string[]> = {
 };
 
 export function EvaluationWorkspace() {
-  const { state, setState, closeSession, computation, lastSavedAt, activeSessionTitle } =
-    useEvaluation();
+  const {
+    state,
+    setState,
+    closeSession,
+    saveNow,
+    computation,
+    lastSavedAt,
+    activeSessionTitle,
+    saveError,
+  } = useEvaluation();
   if (!state) return null;
 
   const step = state.currentStep;
@@ -89,13 +97,19 @@ export function EvaluationWorkspace() {
             <p className="text-sm text-muted-foreground mt-0.5">{currentLabel}</p>
           )}
         </div>
-        <div className="flex gap-2 items-center">
-          {savedLabel && (
+        <div className="flex flex-wrap gap-2 items-center justify-end">
+          {saveError ? (
+            <p className="text-xs text-destructive max-w-xs text-right">{saveError}</p>
+          ) : savedLabel ? (
             <p className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
               <Save className="h-3.5 w-3.5" />
-              Saved {savedLabel}
+              Saved to local storage &bull; {savedLabel}
             </p>
-          )}
+          ) : null}
+          <Button variant="outline" size="sm" onClick={saveNow}>
+            <Save className="h-4 w-4" />
+            Save
+          </Button>
           <Button variant="outline" size="sm" onClick={closeSession}>
             <FolderOpen className="h-4 w-4" />
             Close

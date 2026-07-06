@@ -66,15 +66,37 @@ function readStore(): SessionStore {
   return { version: STORAGE_VERSION, sessions: [] };
 }
 
-function writeStore(store: SessionStore): boolean {
-  if (typeof window === "undefined") return false;
+function writeStore(store: SessionStore): { ok: true } | { ok: false; error: string } {
+  if (typeof window === "undefined") {
+    return { ok: false, error: "Storage is not available in this environment." };
+  }
   try {
     localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(store));
+    return { ok: true };
+  } catch (error) {
+    const message =
+      error instanceof DOMException && error.name === "QuotaExceededError"
+        ? "Browser storage is full. Delete old evaluations or free space, then try again."
+        : "Could not save to browser local storage. Check that storage is enabled for this site.";
+    return { ok: false, error: message };
+  }
+}
+
+export function isLocalStorageAvailable(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const probeKey = `${SESSIONS_STORAGE_KEY}-probe`;
+    localStorage.setItem(probeKey, "1");
+    localStorage.removeItem(probeKey);
     return true;
   } catch {
     return false;
   }
 }
+
+export type SaveSessionResult =
+  | { ok: true; savedAt: string }
+  | { ok: false; error: string };
 
 function parseLegacyPayload(raw: string): { state: EvaluationState; savedAt: string | null } | null {
   try {
@@ -186,7 +208,7 @@ export function createSession(state: EvaluationState): string | null {
     state: normalized,
   });
 
-  if (!writeStore(store)) return null;
+  if (!writeStore(store).ok) return null;
   setActiveSessionId(id);
   return id;
 }
@@ -205,10 +227,12 @@ export function loadSessionById(id: string): LoadedSession | null {
   };
 }
 
-export function saveSessionById(id: string, state: EvaluationState): string | null {
+export function saveSessionById(id: string, state: EvaluationState): SaveSessionResult {
   const store = readStore();
   const index = store.sessions.findIndex((s) => s.id === id);
-  if (index < 0) return null;
+  if (index < 0) {
+    return { ok: false, error: "This evaluation could not be found in local storage." };
+  }
 
   const savedAt = new Date().toISOString();
   const normalized = normalizeEvaluationState(state);
@@ -221,8 +245,9 @@ export function saveSessionById(id: string, state: EvaluationState): string | nu
     state: normalized,
   };
 
-  if (!writeStore(store)) return null;
-  return savedAt;
+  const result = writeStore(store);
+  if (!result.ok) return result;
+  return { ok: true, savedAt };
 }
 
 export function deleteSessionById(id: string): boolean {
@@ -230,7 +255,7 @@ export function deleteSessionById(id: string): boolean {
   const nextSessions = store.sessions.filter((s) => s.id !== id);
   if (nextSessions.length === store.sessions.length) return false;
 
-  if (!writeStore({ ...store, sessions: nextSessions })) return false;
+  if (!writeStore({ ...store, sessions: nextSessions }).ok) return false;
 
   if (getActiveSessionId() === id) setActiveSessionId(null);
   return true;
@@ -249,5 +274,5 @@ export function renameSessionById(id: string, title: string): boolean {
     title: trimmed,
   };
 
-  return writeStore(store);
+  return writeStore(store).ok;
 }

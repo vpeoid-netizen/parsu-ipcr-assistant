@@ -7,7 +7,7 @@ export type { EvaluationMode };
 export const APP_DISPLAY_NAME = "ParSU Teaching Personnel IPCR Evaluation Assistant";
 
 /** Shown in the app footer; bump when deploying user-facing changes. */
-export const APP_REVISION = "2026.07.06b";
+export const APP_REVISION = "2026.07.06c";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
