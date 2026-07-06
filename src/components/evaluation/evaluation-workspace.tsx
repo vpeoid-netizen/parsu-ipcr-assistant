@@ -1,6 +1,6 @@
 "use client";
 
-import { Calculator, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { Calculator, ChevronLeft, ChevronRight, RotateCcw, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -25,7 +25,7 @@ const MFO_STEP_MAP: Record<number, string[]> = {
 };
 
 export function EvaluationWorkspace() {
-  const { state, setState, resetEvaluation, computation } = useEvaluation();
+  const { state, setState, resetEvaluation, computation, lastSavedAt } = useEvaluation();
   if (!state) return null;
 
   const step = state.currentStep;
@@ -67,6 +67,14 @@ export function EvaluationWorkspace() {
   };
 
   const currentLabel = EVALUATION_STEPS.find((s) => s.id === step)?.label ?? "";
+  const savedLabel = lastSavedAt
+    ? new Date(lastSavedAt).toLocaleString("en-PH", {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : null;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
@@ -77,7 +85,13 @@ export function EvaluationWorkspace() {
           </p>
           <h2 className="text-xl font-bold">{currentLabel}</h2>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          {savedLabel && (
+            <p className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
+              <Save className="h-3.5 w-3.5" />
+              Saved {savedLabel}
+            </p>
+          )}
           <Button variant="outline" size="sm" onClick={resetEvaluation}>
             <RotateCcw className="h-4 w-4" />
             New Evaluation

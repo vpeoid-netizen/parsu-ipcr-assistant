@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
+  clearSession,
   computeLiveEvaluation,
   createInitialState,
   loadSession,
@@ -13,6 +14,8 @@ import type { EvaluationState } from "@/lib/types";
 interface EvaluationContextValue {
   state: EvaluationState | null;
   setState: React.Dispatch<React.SetStateAction<EvaluationState | null>>;
+  hydrated: boolean;
+  lastSavedAt: string | null;
   startEvaluation: () => void;
   resetEvaluation: () => void;
   updateProfile: (patch: Partial<EvaluationState["profile"]>) => void;
@@ -24,15 +27,22 @@ const EvaluationContext = createContext<EvaluationContextValue | null>(null);
 export function EvaluationProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<EvaluationState | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
   useEffect(() => {
     const saved = loadSession();
-    if (saved) setState(saved);
+    if (saved) {
+      setState(saved.state);
+      setLastSavedAt(saved.savedAt);
+    }
     setHydrated(true);
   }, []);
 
   useEffect(() => {
-    if (hydrated && state) saveSession(state);
+    if (hydrated && state) {
+      const savedAt = saveSession(state);
+      if (savedAt) setLastSavedAt(savedAt);
+    }
   }, [state, hydrated]);
 
   const startEvaluation = useCallback(() => {
@@ -41,7 +51,8 @@ export function EvaluationProvider({ children }: { children: React.ReactNode }) 
 
   const resetEvaluation = useCallback(() => {
     setState(null);
-    if (typeof window !== "undefined") sessionStorage.removeItem("parsu-ipcr-session");
+    setLastSavedAt(null);
+    clearSession();
   }, []);
 
   const updateProfile = useCallback((patch: Partial<EvaluationState["profile"]>) => {
@@ -63,7 +74,16 @@ export function EvaluationProvider({ children }: { children: React.ReactNode }) 
 
   return (
     <EvaluationContext.Provider
-      value={{ state, setState, startEvaluation, resetEvaluation, updateProfile, computation }}
+      value={{
+        state,
+        setState,
+        hydrated,
+        lastSavedAt,
+        startEvaluation,
+        resetEvaluation,
+        updateProfile,
+        computation,
+      }}
     >
       {children}
     </EvaluationContext.Provider>

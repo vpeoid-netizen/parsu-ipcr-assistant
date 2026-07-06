@@ -1,5 +1,5 @@
 import { ParsuLogo } from "@/components/parsu-logo";
-import { APP_DISPLAY_NAME } from "@/lib/utils";
+import { APP_DISPLAY_NAME, APP_REVISION } from "@/lib/utils";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -16,7 +16,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main className="flex-1">{children}</main>
       <footer className="border-t bg-white py-3 text-center text-xs text-muted-foreground">
         <p>Partido State University &mdash; IPCR rating computation assistant</p>
-        <p className="mt-0.5">Session data is not permanently stored &bull; MOV shown as reference only</p>
+        <p className="mt-0.5">
+          Progress saved locally in your browser &bull; MOV shown as reference only &bull; Rev{" "}
+          {APP_REVISION}
+        </p>
       </footer>
     </div>
   );

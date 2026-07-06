@@ -23,6 +23,53 @@ import type {
 } from "@/lib/types";
 
 const SESSION_KEY = "parsu-ipcr-session";
+const SESSION_STORAGE_VERSION = 1;
+
+interface PersistedSession {
+  version: number;
+  savedAt: string;
+  state: EvaluationState;
+}
+
+export interface LoadedSession {
+  state: EvaluationState;
+  savedAt: string | null;
+}
+
+function readRawSession(): string | null {
+  if (typeof window === "undefined") return null;
+  const fromLocal = localStorage.getItem(SESSION_KEY);
+  if (fromLocal) return fromLocal;
+  const fromSession = sessionStorage.getItem(SESSION_KEY);
+  if (fromSession) {
+    try {
+      localStorage.setItem(SESSION_KEY, fromSession);
+    } catch {
+      // Quota or private mode — keep using session copy for this visit.
+    }
+    sessionStorage.removeItem(SESSION_KEY);
+    return fromSession;
+  }
+  return null;
+}
+
+function normalizeLoadedState(state: EvaluationState): EvaluationState {
+  return {
+    ...state,
+    profile: {
+      ...state.profile,
+      teachingLoadUnits:
+        state.profile.teachingLoadUnits > 0
+          ? state.profile.teachingLoadUnits
+          : DEFAULT_TEACHING_LOAD_UNITS,
+    },
+    indicators: state.indicators.map((e) =>
+      normalizeIndicatorEntry(e, state.profile.rankCategory)
+    ),
+    strategicTargets: state.strategicTargets.map(normalizeTargetEntry),
+    priorityTargets: state.priorityTargets.map(normalizeTargetEntry),
+  };
+}
 
 export function uid(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -565,9 +612,19 @@ export function buildFinalIpcrComputationBreakdown(
   return sections;
 }
 
-export function saveSession(state: EvaluationState) {
-  if (typeof window !== "undefined") {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
+export function saveSession(state: EvaluationState): string | null {
+  if (typeof window === "undefined") return null;
+  const savedAt = new Date().toISOString();
+  const payload: PersistedSession = {
+    version: SESSION_STORAGE_VERSION,
+    savedAt,
+    state,
+  };
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
+    return savedAt;
+  } catch {
+    return null;
   }
 }
 
@@ -599,34 +656,44 @@ export function normalizeTargetEntry(entry: TargetEntryState): TargetEntryState 
   };
 }
 
-export function loadSession(): EvaluationState | null {
-  if (typeof window === "undefined") return null;
-  const raw = sessionStorage.getItem(SESSION_KEY);
+export function loadSession(): LoadedSession | null {
+  const raw = readRawSession();
   if (!raw) return null;
   try {
-    const state = JSON.parse(raw) as EvaluationState;
-    return {
-      ...state,
-      profile: {
-        ...state.profile,
-        teachingLoadUnits:
-          state.profile.teachingLoadUnits > 0
-            ? state.profile.teachingLoadUnits
-            : DEFAULT_TEACHING_LOAD_UNITS,
-      },
-      indicators: state.indicators.map((e) =>
-        normalizeIndicatorEntry(e, state.profile.rankCategory)
-      ),
-      strategicTargets: state.strategicTargets.map(normalizeTargetEntry),
-      priorityTargets: state.priorityTargets.map(normalizeTargetEntry),
-    };
+    const parsed = JSON.parse(raw) as PersistedSession | EvaluationState;
+    if (
+      parsed &&
+      typeof parsed === "object" &&
+      "state" in parsed &&
+      parsed.state &&
+      typeof parsed.state === "object"
+    ) {
+      const envelope = parsed as PersistedSession;
+      return {
+        state: normalizeLoadedState(envelope.state),
+        savedAt: envelope.savedAt ?? null,
+      };
+    }
+    if (parsed && typeof parsed === "object" && "profile" in parsed && "indicators" in parsed) {
+      return {
+        state: normalizeLoadedState(parsed as EvaluationState),
+        savedAt: null,
+      };
+    }
+    return null;
   } catch {
     return null;
   }
 }
 
+export function hasSavedSession(): boolean {
+  return readRawSession() != null;
+}
+
 export function clearSession() {
-  if (typeof window !== "undefined") sessionStorage.removeItem(SESSION_KEY);
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(SESSION_KEY);
 }
 
 export function getIndicatorDef(code: string) {

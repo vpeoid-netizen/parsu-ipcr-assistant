@@ -16,8 +16,8 @@ export function WelcomeScreen() {
         <h1 className="text-2xl sm:text-3xl font-bold text-parsu-dark">{APP_DISPLAY_NAME}</h1>
         <p className="mt-2 text-muted-foreground max-w-xl mx-auto">
           FY 2026 rating computation tool for teaching personnel. Enter indicator ratings and
-          faculty information to compute your IPCR — no account required. Data is kept only for
-          this browser session.
+          faculty information to compute your IPCR — no account required. Your progress is saved
+          automatically in this browser and restored when you return.
         </p>
       </div>
 
