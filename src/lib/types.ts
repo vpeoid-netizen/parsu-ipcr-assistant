@@ -60,10 +60,7 @@ export interface IndicatorEntryState {
 export interface TargetEntryState {
   id: string;
   targetStatement: string;
-  unitOfMeasure: string;
-  periodTarget: number;
-  actualAccomplishment?: number;
-  validatedAccomplishment?: number;
+  rating?: number;
   facultyRemarks?: string;
   evaluatorRemarks?: string;
 }

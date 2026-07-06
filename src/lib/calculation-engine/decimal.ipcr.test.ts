@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   computeBaseIpcr,
   computePerformanceResults,
+  consolidateStrategicPriorityRatings,
   d,
   getMfoWeights,
   round,
@@ -66,5 +67,17 @@ describe("computeBaseIpcr", () => {
   it("reallocates Strategic/Priority weight for COS faculty without assigned targets", () => {
     const { rating } = computeBaseIpcr(d(4), d(0), d(3), true, false);
     expect(round(rating).toNumber()).toBe(3.9);
+  });
+});
+
+describe("consolidateStrategicPriorityRatings", () => {
+  it("averages strategic and priority target ratings on a 0–5 scale", () => {
+    const { rating } = consolidateStrategicPriorityRatings([4, 2], [5]);
+    expect(round(rating).toNumber()).toBe(3.667);
+  });
+
+  it("includes zero ratings in the consolidated average", () => {
+    const { rating } = consolidateStrategicPriorityRatings([0, 4], []);
+    expect(round(rating).toNumber()).toBe(2);
   });
 });

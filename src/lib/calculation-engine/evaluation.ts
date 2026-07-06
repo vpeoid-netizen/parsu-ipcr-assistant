@@ -5,7 +5,7 @@ import {
   computeMfoRating,
   computePerformanceResults,
   computeSupportFunctionsRating,
-  consolidateStrategicPriority,
+  consolidateStrategicPriorityRatings,
   d,
   getAdjectivalRating,
   getMfoWeights,
@@ -42,10 +42,7 @@ export interface IndicatorEntry {
 }
 
 export interface StrategicTargetInput {
-  accomplishment: number;
-  target: number;
-  unit: string;
-  validatedAccomplishment?: number;
+  rating: number;
 }
 
 export interface SupportFunctionInput {
@@ -76,7 +73,7 @@ export interface FullEvaluationResult {
   mfoRatings: Record<string, { rating: number; trace: ComputationTrace }>;
   mfo1_2Rating: number;
   performanceResults: { rating: number; trace: ComputationTrace };
-  consolidatedStratPri: { rating: number; pct: number; trace: ComputationTrace };
+  consolidatedStratPri: { rating: number; trace: ComputationTrace };
   supportFunctionsRating: { rating: number; trace: ComputationTrace };
   designationRating: { rating: number; trace: ComputationTrace };
   baseIpcr: { rating: number; trace: ComputationTrace };
@@ -177,17 +174,9 @@ export function computeFullEvaluation(input: FullEvaluationInput): FullEvaluatio
   const hasStrategicOrPriority =
     input.hasStrategicOrPriority ??
     (input.strategicTargets.length > 0 || input.priorityTargets.length > 0);
-  const stratPriResult = consolidateStrategicPriority(
-    input.strategicTargets.map((t) => ({
-      accomplishment: d(t.validatedAccomplishment ?? t.accomplishment),
-      target: d(t.target),
-      unit: t.unit,
-    })),
-    input.priorityTargets.map((t) => ({
-      accomplishment: d(t.validatedAccomplishment ?? t.accomplishment),
-      target: d(t.target),
-      unit: t.unit,
-    }))
+  const stratPriResult = consolidateStrategicPriorityRatings(
+    input.strategicTargets.map((t) => t.rating),
+    input.priorityTargets.map((t) => t.rating)
   );
 
   // 5. Support Functions
@@ -230,7 +219,6 @@ export function computeFullEvaluation(input: FullEvaluationInput): FullEvaluatio
     performanceResults: { rating: round(perfResult.rating).toNumber(), trace: createTrace(perfResult.trace, perfResult.rating) },
     consolidatedStratPri: {
       rating: round(stratPriResult.rating).toNumber(),
-      pct: round(stratPriResult.pct, 2).toNumber(),
       trace: createTrace(stratPriResult.trace, stratPriResult.rating),
     },
     supportFunctionsRating: { rating: round(sfResult.rating).toNumber(), trace: createTrace(sfResult.trace, sfResult.rating) },

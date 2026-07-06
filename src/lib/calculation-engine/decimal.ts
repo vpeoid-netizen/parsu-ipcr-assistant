@@ -500,6 +500,40 @@ export function consolidateStrategicPriority(
   return { rating, pct: avgPct, trace: steps };
 }
 
+export function consolidateStrategicPriorityRatings(
+  strategicRatings: number[],
+  priorityRatings: number[]
+): { rating: D; trace: ComputationStep[] } {
+  const steps: ComputationStep[] = [];
+  const all = [
+    ...strategicRatings.map((rating) => ({ rating, type: "Strategic" })),
+    ...priorityRatings.map((rating) => ({ rating, type: "Priority" })),
+  ];
+
+  if (all.length === 0) {
+    steps.push({ label: "No strategic/priority targets assigned", value: "N/A" });
+    return { rating: d(0), trace: steps };
+  }
+
+  const capped = all.map((entry) => {
+    const value = Math.min(5, Math.max(0, entry.rating));
+    steps.push({
+      label: `${entry.type} target rating`,
+      value: value.toFixed(3),
+    });
+    return d(value);
+  });
+
+  const avgRating = avg(capped);
+  steps.push({
+    label: "Consolidated Strategic/Priority rating",
+    formula: `${capped.map((r) => round(r).toFixed(3)).join(" + ")} ÷ ${capped.length}`,
+    value: round(avgRating).toFixed(3),
+  });
+
+  return { rating: cap(avgRating), trace: steps };
+}
+
 // Base IPCR computation
 export function computeBaseIpcr(
   performanceResults: D,

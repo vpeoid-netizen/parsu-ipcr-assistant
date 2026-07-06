@@ -102,17 +102,15 @@ export function ExportStep() {
                   <tr>
                     <th className="text-left p-2 font-medium">Type</th>
                     <th className="text-left p-2 font-medium">Target statement</th>
-                    <th className="text-right p-2 font-medium">Target</th>
-                    <th className="text-right p-2 font-medium">Actual</th>
+                    <th className="text-right p-2 font-medium">Rating</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {worksheet.targets.map((row) => (
-                    <tr key={`${row.type}-${row.statement}-${row.target}`}>
+                    <tr key={`${row.type}-${row.statement}-${row.rating}`}>
                       <td className="p-2">{row.type}</td>
                       <td className="p-2">{row.statement}</td>
-                      <td className="p-2 text-right font-mono">{row.target}</td>
-                      <td className="p-2 text-right font-mono">{row.actual}</td>
+                      <td className="p-2 text-right font-mono">{row.rating}</td>
                     </tr>
                   ))}
                 </tbody>

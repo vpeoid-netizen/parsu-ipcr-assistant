@@ -14,8 +14,7 @@ export interface WorksheetIndicatorRow {
 export interface WorksheetTargetRow {
   type: string;
   statement: string;
-  target: string;
-  actual: string;
+  rating: string;
 }
 
 export interface WorksheetData {
@@ -69,14 +68,12 @@ export function buildWorksheetData(
     ...state.strategicTargets.filter(hasTargetInput).map((t) => ({
       type: "Strategic",
       statement: t.targetStatement || "—",
-      target: String(t.periodTarget),
-      actual: String(t.actualAccomplishment ?? "—"),
+      rating: formatRating(t.rating),
     })),
     ...state.priorityTargets.filter(hasTargetInput).map((t) => ({
       type: "Priority",
       statement: t.targetStatement || "—",
-      target: String(t.periodTarget),
-      actual: String(t.actualAccomplishment ?? "—"),
+      rating: formatRating(t.rating),
     })),
   ];
 

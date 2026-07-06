@@ -1,11 +1,5 @@
 import { INDICATOR_SEEDS, type IndicatorDefinition } from "@/data/indicators";
 import { PH_HOLIDAYS_2026 } from "@/data/reference";
-import {
-  consolidateStrategicPriority,
-  d,
-  percentageToRating,
-  round,
-} from "@/lib/calculation-engine/decimal";
 import { computeFullEvaluation } from "@/lib/calculation-engine/evaluation";
 import type { FullEvaluationResult } from "@/lib/calculation-engine/evaluation";
 import type { ComputationStep } from "@/lib/calculation-engine/decimal";
@@ -377,11 +371,7 @@ export function cosUsesMfo12OnlyIpcr(state: EvaluationState): boolean {
 }
 
 export function hasTargetInput(target: TargetEntryState): boolean {
-  return (
-    target.periodTarget > 0 &&
-    target.actualAccomplishment != null &&
-    !Number.isNaN(target.actualAccomplishment)
-  );
+  return target.rating != null && !Number.isNaN(target.rating);
 }
 
 
@@ -440,22 +430,10 @@ export function buildComputeInput(state: EvaluationState) {
         };
       }),
     strategicTargets: effectiveStrategicHasAssignedTarget(state)
-      ? state.strategicTargets
-          .filter(hasTargetInput)
-          .map((t) => ({
-            accomplishment: t.actualAccomplishment ?? 0,
-            target: t.periodTarget,
-            unit: t.unitOfMeasure,
-          }))
+      ? state.strategicTargets.filter(hasTargetInput).map((t) => ({ rating: t.rating! }))
       : [],
     priorityTargets: effectivePriorityHasAssignedTarget(state)
-      ? state.priorityTargets
-          .filter(hasTargetInput)
-          .map((t) => ({
-            accomplishment: t.actualAccomplishment ?? 0,
-            target: t.periodTarget,
-            unit: t.unitOfMeasure,
-          }))
+      ? state.priorityTargets.filter(hasTargetInput).map((t) => ({ rating: t.rating! }))
       : [],
     hasStrategicOrPriority: hasStrategicOrPriorityForComputation(state),
     supportFunctions: state.supportFunctions
@@ -486,28 +464,16 @@ export function computeEvaluation(state: EvaluationState) {
 
 export function computeTargetEntryRating(target: TargetEntryState): number | null {
   if (!hasTargetInput(target)) return null;
-  const pct = d(target.actualAccomplishment!).div(d(target.periodTarget)).times(100);
-  const { rating } = percentageToRating(pct);
-  return round(rating).toNumber();
+  return Math.min(5, Math.max(0, target.rating!));
 }
 
 export function computeTargetsSectionRating(
   targets: TargetEntryState[]
-): { rating: number; pct: number } | null {
+): { rating: number } | null {
   const valid = targets.filter(hasTargetInput);
   if (valid.length === 0) return null;
-  const result = consolidateStrategicPriority(
-    valid.map((t) => ({
-      accomplishment: d(t.actualAccomplishment!),
-      target: d(t.periodTarget),
-      unit: t.unitOfMeasure || "unit",
-    })),
-    []
-  );
-  return {
-    rating: round(result.rating).toNumber(),
-    pct: round(result.pct, 2).toNumber(),
-  };
+  const total = valid.reduce((sum, t) => sum + (t.rating ?? 0), 0);
+  return { rating: total / valid.length };
 }
 
 export function computeDeliverableComposite(item: {
@@ -623,6 +589,16 @@ export function normalizeIndicatorEntry(
   };
 }
 
+export function normalizeTargetEntry(entry: TargetEntryState): TargetEntryState {
+  return {
+    id: entry.id,
+    targetStatement: entry.targetStatement ?? "",
+    rating: entry.rating,
+    facultyRemarks: entry.facultyRemarks,
+    evaluatorRemarks: entry.evaluatorRemarks,
+  };
+}
+
 export function loadSession(): EvaluationState | null {
   if (typeof window === "undefined") return null;
   const raw = sessionStorage.getItem(SESSION_KEY);
@@ -641,6 +617,8 @@ export function loadSession(): EvaluationState | null {
       indicators: state.indicators.map((e) =>
         normalizeIndicatorEntry(e, state.profile.rankCategory)
       ),
+      strategicTargets: state.strategicTargets.map(normalizeTargetEntry),
+      priorityTargets: state.priorityTargets.map(normalizeTargetEntry),
     };
   } catch {
     return null;

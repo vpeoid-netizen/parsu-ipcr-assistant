@@ -434,11 +434,10 @@ class WorksheetPdfWriter {
       await this.drawTable(
         [
           { label: "Type", width: 0.14 },
-          { label: "Target statement", width: 0.46 },
-          { label: "Target", width: 0.2, align: "right" },
-          { label: "Actual", width: 0.2, align: "right" },
+          { label: "Target statement", width: 0.56 },
+          { label: "Rating", width: 0.3, align: "right" },
         ],
-        data.targets.map((r) => [r.type, r.statement, r.target, r.actual])
+        data.targets.map((r) => [r.type, r.statement, r.rating])
       );
     }
 
