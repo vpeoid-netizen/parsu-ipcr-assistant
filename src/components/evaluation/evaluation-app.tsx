@@ -10,7 +10,7 @@ function EvaluationAppInner() {
   if (!hydrated) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-12 text-center text-sm text-muted-foreground">
-        Loading saved evaluation…
+        Loading evaluations…
       </div>
     );
   }

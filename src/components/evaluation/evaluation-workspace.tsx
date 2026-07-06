@@ -1,6 +1,6 @@
 "use client";
 
-import { Calculator, ChevronLeft, ChevronRight, RotateCcw, Save } from "lucide-react";
+import { Calculator, ChevronLeft, ChevronRight, FolderOpen, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -25,7 +25,8 @@ const MFO_STEP_MAP: Record<number, string[]> = {
 };
 
 export function EvaluationWorkspace() {
-  const { state, setState, resetEvaluation, computation, lastSavedAt } = useEvaluation();
+  const { state, setState, closeSession, computation, lastSavedAt, activeSessionTitle } =
+    useEvaluation();
   if (!state) return null;
 
   const step = state.currentStep;
@@ -83,7 +84,10 @@ export function EvaluationWorkspace() {
           <p className="text-xs text-primary font-semibold uppercase tracking-wide">
             FY 2026 IPCR Evaluation
           </p>
-          <h2 className="text-xl font-bold">{currentLabel}</h2>
+          <h2 className="text-xl font-bold">{activeSessionTitle ?? currentLabel}</h2>
+          {activeSessionTitle && (
+            <p className="text-sm text-muted-foreground mt-0.5">{currentLabel}</p>
+          )}
         </div>
         <div className="flex gap-2 items-center">
           {savedLabel && (
@@ -92,9 +96,9 @@ export function EvaluationWorkspace() {
               Saved {savedLabel}
             </p>
           )}
-          <Button variant="outline" size="sm" onClick={resetEvaluation}>
-            <RotateCcw className="h-4 w-4" />
-            New Evaluation
+          <Button variant="outline" size="sm" onClick={closeSession}>
+            <FolderOpen className="h-4 w-4" />
+            Close
           </Button>
         </div>
       </div>
