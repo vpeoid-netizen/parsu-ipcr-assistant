@@ -447,9 +447,9 @@ export function buildComputeInput(state: EvaluationState) {
     supportFunctions: state.supportFunctions
       .filter(hasSupportFunctionRatingInput)
       .map((sf) => ({
-        qualityRating: sf.qualityRating ?? 0,
-        efficiencyRating: sf.efficiencyRating ?? 0,
-        timelinessRating: sf.timelinessRating ?? 0,
+        qualityRating: sf.qualityRating,
+        efficiencyRating: sf.efficiencyRating,
+        timelinessRating: sf.timelinessRating,
       })),
     designationDeliverables: state.designationDeliverables
       .filter(hasDeliverableRatingInput)

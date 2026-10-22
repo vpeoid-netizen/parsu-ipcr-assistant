@@ -46,9 +46,9 @@ export interface StrategicTargetInput {
 }
 
 export interface SupportFunctionInput {
-  qualityRating: number;
-  efficiencyRating: number;
-  timelinessRating: number;
+  qualityRating?: number;
+  efficiencyRating?: number;
+  timelinessRating?: number;
 }
 
 export interface DesignationDeliverableInput {
@@ -90,14 +90,14 @@ function avgRatings(ratings: number[]): number {
 
 function supportFunctionComposite(sf: SupportFunctionInput): number {
   const ratings = [sf.qualityRating, sf.efficiencyRating, sf.timelinessRating].filter(
-    (r) => r != null && !Number.isNaN(r)
+    (r): r is number => r != null && !Number.isNaN(r)
   );
   if (ratings.length === 0) return 0;
   return ratings.reduce((a, b) => a + b, 0) / ratings.length;
 }
 
-function designationComposite(sf: SupportFunctionInput): number {
-  return avgRatings([sf.qualityRating, sf.efficiencyRating, sf.timelinessRating]);
+function designationComposite(item: DesignationDeliverableInput): number {
+  return avgRatings([item.qualityRating, item.efficiencyRating, item.timelinessRating]);
 }
 
 export function computeFullEvaluation(input: FullEvaluationInput): FullEvaluationResult {
